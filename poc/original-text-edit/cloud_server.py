@@ -19,7 +19,8 @@ import tempfile
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request, UploadFile
+from fastapi import FastAPI, HTTPException, Request
+from starlette.datastructures import UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
