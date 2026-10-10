@@ -18,6 +18,7 @@ jobs:
         run: |
           node --check enhancements.js
           node --check typography-v04.js
+          node --check zoom-v05.js
           python3 - <<'PY'
           from pathlib import Path
           import re
