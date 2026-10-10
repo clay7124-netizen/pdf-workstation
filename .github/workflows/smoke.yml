@@ -1,0 +1,35 @@
+name: PDF Workstation UI Smoke Tests
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check enhancements.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text()
+          src=re.search(r'<script>([\s\S]*?)</script>',s)
+          assert src,"main inline script missing"
+          Path('/tmp/pdf-inline.js').write_text(src.group(1))
+          PY
+          node --check /tmp/pdf-inline.js
+      - name: Install test dependencies
+        run: npm install --no-save playwright@1.56.0 pdf-lib@1.17.1
+      - name: Run responsive browser tests
+        run: |
+          python3 -m http.server 8123 > /tmp/pdf-server.log 2>&1 &
+          sleep 2
+          node tests/smoke.mjs
