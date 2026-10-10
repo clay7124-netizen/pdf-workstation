@@ -37,6 +37,36 @@ def make_latin(path: Path) -> None:
     c.save()
 
 
+def ensure_chinese_static_font() -> Path:
+    from fontTools.ttLib import TTFont as FontToolsFont
+    from fontTools.varLib.instancer import instantiateVariableFont
+
+    raw = BASE / "NotoSansTC-variable.ttf"
+    if not raw.exists():
+        with urlopen(FONT_URL, timeout=35) as response:
+            raw.write_bytes(response.read())
+    static_file = BASE / "NotoSansTC-static.ttf"
+    if not static_file.exists():
+        var = FontToolsFont(str(raw))
+        static = instantiateVariableFont(var, {"wght": 400}, inplace=False)
+        static.save(str(static_file))
+    return static_file
+
+
+def make_chinese_cid(path: Path) -> None:
+    """Generate a Type0 / Identity-H PDF using fpdf2, which is relevant to CJK."""
+    from fpdf import FPDF
+    font_file = ensure_chinese_static_font()
+    pdf = FPDF(format="A4")
+    pdf.add_page()
+    pdf.add_font("NotoSansTC", fname=str(font_file))
+    pdf.set_font("NotoSansTC", size=14)
+    pdf.text(28, 50, "維修日期：2024年")
+    pdf.text(28, 60, "設備狀態：正常")
+    pdf.text(28, 70, "測試數字：2025年")
+    pdf.output(str(path))
+
+
 def make_chinese(path: Path) -> None:
     from fontTools.ttLib import TTFont as FontToolsFont
     from fontTools.varLib.instancer import instantiateVariableFont
@@ -83,7 +113,7 @@ def evaluate(label: str, source: Path, original: str, replacement: str) -> dict:
         if original not in text_before:
             raise AssertionError("Input text is not searchable by pdfminer")
 
-        if label == "traditional_chinese":
+        if label.startswith("traditional_chinese"):
             # Diagnostic only: distinguish a cross-operator match from a font/CMap
             # decoding problem. pdfminer readable text alone does not prove
             # the original content stream can be located by this engine.
@@ -154,6 +184,9 @@ def main() -> None:
             chinese = folder / "chinese.pdf"
             make_chinese(chinese)
             tests.append(evaluate("traditional_chinese", chinese, "2024年", "2025年"))
+            cid_pdf = folder / "chinese_cid.pdf"
+            make_chinese_cid(cid_pdf)
+            tests.append(evaluate("traditional_chinese_cid", cid_pdf, "2024年", "2025年"))
         except Exception as exc:
             tests.append({
                 "test": "traditional_chinese",
@@ -172,7 +205,7 @@ def main() -> None:
             "results": tests,
             "all_pass": all(t["status"] == "pass" for t in tests),
             "limitations": [
-                "Only same-length synthetic text evaluated.",
+                "Only same-length synthetic text evaluated; two CJK generators compared.",
                 "Chinese probe uses Noto Sans TC, not proprietary original fonts.",
                 "PDF render pixel-diff and complex layouts still need verification.",
                 "Python + pikepdf cannot run inside a plain static GitHub Pages website.",
