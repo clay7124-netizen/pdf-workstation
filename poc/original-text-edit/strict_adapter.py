@@ -163,7 +163,7 @@ def strict_apply(path: Path, dest: Path, text: str, replacement: str) -> Decisio
                 visual = verify_only_target_changed(
                     str(path), str(staged),
                     matches[0].page_number,
-                    matches[0].bounding_box,
+                    text,
                 )
             except Exception as exc:
                 return deny("VISUAL_FIDELITY_FAILED",
