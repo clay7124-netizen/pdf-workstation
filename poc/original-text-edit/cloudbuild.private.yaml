@@ -1,0 +1,17 @@
+# Build an image only. Does NOT deploy or grant public access.
+# First create an Artifact Registry Docker repository in the same region.
+substitutions:
+  _REGION: asia-east1
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - poc/original-text-edit/Dockerfile.cloud
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/pdf-workstation/pdf-original-private:beta
+      - .
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/pdf-workstation/pdf-original-private:beta
+options:
+  logging: CLOUD_LOGGING_ONLY
