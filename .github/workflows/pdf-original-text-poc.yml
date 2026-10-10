@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/original-text-edit-poc
+      - feature/cloud-private-original-editor
     paths:
       - poc/original-text-edit/**
       - .github/workflows/pdf-original-text-poc.yml
