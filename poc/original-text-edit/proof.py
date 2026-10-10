@@ -83,6 +83,17 @@ def evaluate(label: str, source: Path, original: str, replacement: str) -> dict:
         if original not in text_before:
             raise AssertionError("Input text is not searchable by pdfminer")
 
+        if label == "traditional_chinese":
+            # Diagnostic only: distinguish a cross-operator match from a font/CMap
+            # decoding problem. pdfminer readable text alone does not prove
+            # the original content stream can be located by this engine.
+            from pdf_edit_engine import get_text, get_fonts
+            result["engine_extracted_sample"] = str(get_text(str(source)))[:250]
+            result["matching_diagnostics"] = {
+                word: len(find(str(source), word))
+                for word in ["2024年", "2024", "維修", "日期", "正常", "年"]
+            }
+            result["fonts_diagnostics"] = str(get_fonts(str(source)))[:500]
         hits = find(str(source), original)
         if len(hits) != 1:
             raise AssertionError(f"Expected one original-text match, got {len(hits)}")
