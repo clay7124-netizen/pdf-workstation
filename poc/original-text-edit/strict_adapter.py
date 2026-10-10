@@ -156,11 +156,24 @@ def strict_apply(path: Path, dest: Path, text: str, replacement: str) -> Decisio
                 return deny("CONTENT_VERIFICATION_FAILED", "修改後文字驗證失敗")
             if not check_file(staged).allowed:
                 return deny("OUTPUT_INVALID", "修改後 PDF 結構驗證失敗")
+            # Independent PDFium raster comparison across ALL pages. Reject
+            # unintended pixel differences, not only text-extraction changes.
+            from visual_guard import verify_only_target_changed
+            try:
+                visual = verify_only_target_changed(
+                    str(path), str(staged),
+                    matches[0].page_number,
+                    matches[0].bounding_box,
+                )
+            except Exception as exc:
+                return deny("VISUAL_FIDELITY_FAILED",
+                            "編輯後的 PDF 影像差異超出選取文字區域，已拒絕輸出",
+                            reason=type(exc).__name__)
             # This file remains in private ephemeral storage until all checks
             # pass; no upload or external server is involved.
             dest.write_bytes(staged.read_bytes())
         return Decision(True, "EDITED", "已修改真正的 PDF 文字，另存新檔；未覆蓋來源",
-                        {"file": str(dest), "page": decision.details["page"]})
+                        {"file": str(dest), "page": decision.details["page"], "visual_guard": visual})
     except Exception as exc:
         dest.unlink(missing_ok=True)
         return deny("EDIT_FAILED", "引擎無法保證不改變原字型與內容",
