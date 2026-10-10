@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install free open-source PDF engine
-        run: python -m pip install 'pdf-edit-engine==0.2.0' 'reportlab>=4.0' 'fpdf2>=2.8,<3' 'pypdfium2>=4,<6' 'fastapi>=0.115,<1' 'httpx>=0.28,<1' 'python-multipart>=0.0.20,<1'
+        run: python -m pip install 'pdf-edit-engine==0.2.0' 'reportlab>=4.0' 'fpdf2>=2.8,<3' 'pypdfium2>=4,<6' 'fastapi>=0.115,<1' 'httpx>=0.28,<1' 'python-multipart>=0.0.20,<1' 'uvicorn>=0.30,<1'
       - name: Run real original-text replacement test
         run: python poc/original-text-edit/proof.py
       - name: Verify strict preflight and fail-closed editing
@@ -40,6 +40,10 @@ jobs:
             if curl -fsS http://127.0.0.1:8765/health >/dev/null; then break; fi
             sleep 1
           done
+          if ! curl -fsS http://127.0.0.1:8765/health >/dev/null; then
+            echo "Local test service failed to start"; cat /tmp/pdf-local-server.log
+            exit 1
+          fi
           node poc/original-text-edit/test_mobile.mjs
       - name: Upload fidelity report
         if: always()
