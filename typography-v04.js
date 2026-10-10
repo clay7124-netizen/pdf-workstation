@@ -24,7 +24,7 @@
     UploadedFont:'"PdfUserFont", "PingFang TC", sans-serif'
   };
   const fontStyles = document.createElement('style');
-  fontStyles.textContent = \`
+  fontStyles.textContent = `
   @font-face {
     font-family:"PdfNotoSansTC";
     src:url("https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/SubsetOTF/TC/NotoSansTC-Regular.otf") format("opentype");
@@ -45,7 +45,7 @@
     src:url("https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Serif/SubsetOTF/TC/NotoSerifTC-Bold.otf") format("opentype");
     font-weight:700; font-display:swap;
   }
-  \`;
+  `;
   document.head.append(fontStyles);
 
   const fontWarning = () =>
