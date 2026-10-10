@@ -224,8 +224,13 @@ try{
   await downloadResult(2);
   note('編輯 PDF 輸出有效 PDF');
 
-  // Verify that Office conversion reads real DOCX and XLSX files and produces PDF.
+  // Editing has unsaved changes, so acknowledge its deliberate leave-confirmation.
+  // Playwright automatically dismisses confirm dialogs unless an explicit handler accepts.
+  // Verify the app actually returns home before testing Office.
+  page.once('dialog',dialog=>dialog.accept());
   await page.locator('#backBtn').click();
+  await page.locator('#home:not(.hidden)').waitFor();
+  // Verify that Office conversion reads real DOCX and XLSX files and produces PDF.
   await page.locator('#officeEntry').click();
   await page.locator('#officeModal:not(.hidden)').waitFor();
   const word = new Document({sections:[{children:[
