@@ -19,6 +19,40 @@ from reportlab.pdfbase.ttfonts import TTFont
 from pdfminer.high_level import extract_text
 from pdf_edit_engine import find, replace
 
+# POC-ONLY shim: examine whether decoding a simple-font /ToUnicode CMap
+# fixes ReportLab CJK files that pdf-edit-engine currently treats as WinAnsi.
+# This is NOT a reviewed upstream patch and must never be shipped as-is.
+def use_simple_font_tounicode_experiment():
+    import io
+    from pdfminer.cmapdb import CMapParser, FileUnicodeMap
+    from pdf_edit_engine.encoding import FontResolver, _build_reverse_map
+
+    original = FontResolver._detect_and_init
+
+    def improved(self, font):
+        original(self, font)
+        if self._is_cid:
+            return
+        tu = font.get("/ToUnicode")
+        if tu is None:
+            return
+        try:
+            # The proof uses a synthetic, known-safe PDF. Real documents
+            # require strict decompression limits and CMap resource bounds.
+            content = tu.read_bytes()
+            cmap = FileUnicodeMap()
+            CMapParser(cmap, io.BytesIO(content)).run()
+            chars = {int(k): value for k, value in cmap.cid2unichr.items()
+                     if 0 <= int(k) <= 255 and value}
+            if chars:
+                self._byte_to_unicode.update(chars)
+                self._unicode_to_byte, _ = _build_reverse_map(self._byte_to_unicode)
+        except Exception:
+            return
+
+    FontResolver._detect_and_init = improved
+
+
 BASE = Path("poc/original-text-edit/results")
 BASE.mkdir(parents=True, exist_ok=True)
 FONT_URL = (
@@ -178,6 +212,7 @@ def evaluate(label: str, source: Path, original: str, replacement: str) -> dict:
 
 
 def main() -> None:
+    use_simple_font_tounicode_experiment()
     with tempfile.TemporaryDirectory() as directory:
         folder = Path(directory)
         tests = []
@@ -209,9 +244,11 @@ def main() -> None:
             "purpose": "Feasibility study only; no mobile deployment, no customer files",
             "results": tests,
             "all_pass": all(t["status"] == "pass" for t in tests),
+            "experiment_simple_font_tounicode_patch": True,
             "limitations": [
                 "Only same-length synthetic text evaluated; two CJK generators compared.",
                 "Chinese probe uses Noto Sans TC, not proprietary original fonts.",
+                "Simple-font /ToUnicode shim is an unreviewed experiment, not production code.",
                 "PDF render pixel-diff and complex layouts still need verification.",
                 "Python + pikepdf cannot run inside a plain static GitHub Pages website.",
             ],
