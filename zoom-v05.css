@@ -1,0 +1,22 @@
+/* v0.5: mobile PDF and text size zoom */
+.viewer-box{display:block;text-align:center;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;max-height:min(68dvh,780px);min-height:310px;-webkit-overflow-scrolling:touch;padding:12px}
+.page-wrap{max-width:none!important;flex-shrink:0;margin-inline:auto;text-align:left;touch-action:pan-x pan-y}
+.page-wrap canvas{max-width:none!important}
+.pdf-zoom-toolbar{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px 13px;margin:12px 0 9px;display:grid;gap:10px}
+.zoom-caption{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px}
+.zoom-caption span{color:var(--muted);font-size:12px}
+.zoom-controls{display:flex;align-items:center;gap:7px}
+.zoom-controls input[type=range]{flex:1;min-width:30px;accent-color:var(--navy);height:35px;touch-action:pan-x}
+.zoom-controls output{font-size:13px;min-width:42px;text-align:center;font-weight:750;font-variant-numeric:tabular-nums}
+.zoom-controls #pdfZoomFit{padding:8px 9px;font-size:12px}
+.zoom-step{font-size:22px}
+.font-size-field{min-width:100%;flex:1 1 100%!important}
+.font-size-control{display:flex;gap:7px;align-items:center;flex-wrap:nowrap;min-width:0}
+.font-size-control .font-size-range{flex:1;min-width:25px;height:42px;accent-color:var(--navy);touch-action:pan-x}
+.font-size-control output{min-width:48px;font-size:15px;font-weight:750;color:var(--navy);text-align:right;font-variant-numeric:tabular-nums}
+.font-size-control .font-step{font-size:15px;font-weight:750;min-width:45px;padding:6px}
+.font-picker-field{flex:1 1 100%!important}
+.font-picker-field select{min-width:100%}
+.font-live-preview{display:flex;align-items:center;gap:12px;justify-content:space-between;border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-top:6px;min-height:54px;background:#f5f9fd}
+.font-live-preview strong{font-size:20px;line-height:1.4}
+@media(max-width:440px){.pdf-zoom-toolbar{padding:10px 9px}.zoom-controls{gap:5px}.zoom-controls #pdfZoomFit{min-width:60px;padding:6px}.zoom-controls output{min-width:39px}.viewer-box{max-height:65dvh}}
