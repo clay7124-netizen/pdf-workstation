@@ -44,6 +44,12 @@ async def home():
     return HTMLResponse((ROOT / "local_editor.html").read_text(encoding="utf-8"))
 
 
+@app.get("/local_editor.js")
+async def local_editor_js():
+    return Response((ROOT / "local_editor.js").read_text(encoding="utf-8"),
+                    media_type="application/javascript; charset=utf-8")
+
+
 @app.get("/health")
 async def health():
     return {"service": "PDF 原文編輯本機研究版", "mode": "loopback_only",
