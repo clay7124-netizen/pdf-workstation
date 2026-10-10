@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install free open-source PDF engine
-        run: python -m pip install 'pdf-edit-engine==0.2.0' 'reportlab>=4.0' 'fpdf2>=2.8,<3' 'pypdfium2>=4,<6' 'fastapi>=0.115,<1' 'httpx>=0.28,<1' 'python-multipart>=0.0.20,<1' 'uvicorn>=0.30,<1'
+        run: python -m pip install 'pdf-edit-engine==0.2.0' 'reportlab>=4.0' 'fpdf2>=2.8,<3' 'pypdfium2>=4,<6' 'fastapi>=0.115,<1' 'httpx>=0.28,<1' 'python-multipart>=0.0.20,<1' 'uvicorn>=0.30,<1' 'google-auth>=2.35,<3' 'requests>=2.32,<3'
       - name: Run real original-text replacement test
         run: python poc/original-text-edit/proof.py
       - name: Verify strict preflight and fail-closed editing
@@ -45,6 +45,12 @@ jobs:
             exit 1
           fi
           node poc/original-text-edit/test_mobile.mjs
+      - name: Security test private Cloud Run backend (synthetic PDFs only)
+        run: python poc/original-text-edit/test_cloud.py
+      - name: Syntax-check Cloud Run backend
+        run: |
+          python -m py_compile poc/original-text-edit/cloud_server.py poc/original-text-edit/cloud_worker.py
+          node --check poc/original-text-edit/cloud_editor.js
       - name: Upload fidelity report
         if: always()
         uses: actions/upload-artifact@v4
