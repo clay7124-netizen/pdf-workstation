@@ -1,4 +1,4 @@
-/* PDF 工作台 v0.3：手機文字編輯、PDF 合併預覽、圖片旋轉、原文字型檢查
+/* PDF 工作台 v0.3.1：手機文字編輯、PDF 合併預覽、圖片旋轉、原文字型檢查
  * 原文修改尚未實作，絕不以白框覆蓋假冒真正編輯。
  * 此檔案不會將使用者檔案或辨識結果上傳至伺服器。
  */
@@ -168,7 +168,8 @@
 
   async function decodeImage(file) {
     if ('createImageBitmap' in window) {
-      try { return await createImageBitmap(file); } catch { /* fallback to Image */ }
+      try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+      catch { try { return await createImageBitmap(file); } catch { /* fallback to Image */ } }
     }
     return await new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
@@ -237,28 +238,27 @@
     const doc = await PDFLib.PDFDocument.create();
     for (const file of files) {
       const angle = imgRotation.get(file) || 0;
-      // 未旋轉的圖片保留原始 JPEG/PNG 編碼，避免不必要的品質損失。
+      // PDF.js 在畫面顯示照片時，瀏覽器會套用 EXIF Orientation。
+      // pdf-lib.embedJpg 只嵌入原始像素，不會依 JPEG 的 EXIF Orientation 自動旋轉。
+      // 因此即使畫面顯示 0°，直接 embedJpg 仍可能讓 iPhone 照片橫躺。
+      // 無論使用者是否手動旋轉，都要先使用與預覽相同的解碼及畫布程序將方向烘焙到像素。
       let image;
-      if (!angle) {
-        const bytes = await file.arrayBuffer();
-        image = (file.type === 'image/png' || /\.png$/i.test(file.name))
-          ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
-      } else {
-        const bitmap = await decodeImage(file);
+      const bitmap = await decodeImage(file);
+      try {
+        const w = bitmap.width, h = bitmap.height;
+        // 4096 邊長足夠一般 A4 輸出，同時減少 iPhone 上超大照片造成的記憶體壓力。
+        const scale = Math.min(1, 4096 / Math.max(w, h));
+        const canvas = document.createElement('canvas');
+        paintImageRotated(canvas, bitmap, angle, scale);
+        const mime = (file.type === 'image/png' || /\.png$/i.test(file.name))
+          ? 'image/png' : 'image/jpeg';
         try {
-          const w = bitmap.width, h = bitmap.height;
-          const scale = Math.min(1, 3200 / Math.max(w, h));
-          const canvas = document.createElement('canvas');
-          paintImageRotated(canvas, bitmap, angle, scale);
-          const mime = (file.type === 'image/png' || /\.png$/i.test(file.name))
-            ? 'image/png' : 'image/jpeg';
           const blob = await new Promise((resolve, reject) =>
-            canvas.toBlob(b => b ? resolve(b) : reject(new Error('圖片旋轉失敗')), mime, .93));
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error('圖片方向處理失敗')), mime, .96));
           const bytes = await blob.arrayBuffer();
           image = mime === 'image/png' ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
-          canvas.width = canvas.height = 0;
-        } finally { bitmap.close?.(); }
-      }
+        } finally { canvas.width = canvas.height = 0; }
+      } finally { bitmap.close?.(); }
       const landscape = image.width > image.height;
       const paper = landscape ? [841.89, 595.28] : [595.28, 841.89];
       const margin = 24;
