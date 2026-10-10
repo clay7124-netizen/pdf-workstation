@@ -1,0 +1,9 @@
+# Runtime-only dependencies (smaller image, fewer packages).
+# Pin with hashes and scan with pip-audit before deploying real user files.
+pdf-edit-engine==0.2.0
+pypdfium2>=4,<6
+fastapi>=0.115,<1
+python-multipart>=0.0.20,<1
+uvicorn>=0.30,<1
+google-auth>=2.35,<3
+requests>=2.32,<3
