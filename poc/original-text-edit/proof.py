@@ -64,6 +64,7 @@ def make_chinese_cid(path: Path) -> None:
     pdf.text(28, 50, "維修日期：2024年")
     pdf.text(28, 60, "設備狀態：正常")
     pdf.text(28, 70, "測試數字：2025年")
+    pdf.text(28, 80, "故障示例：異常，保養")
     pdf.output(str(path))
 
 
@@ -142,10 +143,13 @@ def evaluate(label: str, source: Path, original: str, replacement: str) -> dict:
         text_after = normalized(extract_text(str(dest)))
         result["output_text_present"] = replacement in text_after
         result["original_text_removed"] = original not in text_after
-        result["unmodified_text_preserved"] = (
-            "Device serial: TEST-0000" in text_after if label == "latin"
-            else "設備狀態：正常" in text_after
-        )
+        if label == "latin":
+            unchanged = "Device serial: TEST-0000"
+        elif label.endswith("_ideograph"):
+            unchanged = "維修日期：2024年"
+        else:
+            unchanged = "設備狀態：正常"
+        result["unmodified_text_preserved"] = unchanged in text_after
 
         # Direct-content surgery is the documented method of the engine.
         # We will add independent content-stream structural comparison later.
@@ -187,6 +191,7 @@ def main() -> None:
             cid_pdf = folder / "chinese_cid.pdf"
             make_chinese_cid(cid_pdf)
             tests.append(evaluate("traditional_chinese_cid", cid_pdf, "2024年", "2025年"))
+            tests.append(evaluate("traditional_chinese_cid_ideograph", cid_pdf, "正常", "異常"))
         except Exception as exc:
             tests.append({
                 "test": "traditional_chinese",
