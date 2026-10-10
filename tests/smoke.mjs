@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {PDFDocument,StandardFonts} from 'pdf-lib';
+import { Document, Packer, Paragraph } from 'docx';
+import ExcelJS from 'exceljs';
 
 async function sample(label, count) {
   const d=await PDFDocument.create();
@@ -221,6 +223,62 @@ try{
   note('新增文字視窗、即時修改、原文字型唯讀分析');
   await downloadResult(2);
   note('編輯 PDF 輸出有效 PDF');
+
+  // Verify that Office conversion reads real DOCX and XLSX files and produces PDF.
+  await page.locator('#backBtn').click();
+  await page.locator('#officeEntry').click();
+  await page.locator('#officeModal:not(.hidden)').waitFor();
+  const word = new Document({sections:[{children:[
+    new Paragraph('服務報告'),
+    new Paragraph('設備運作正常，已完成測試'),
+    new Paragraph('備註：這是測試文件')
+  ]}]});
+  const wordBuffer=await Packer.toBuffer(word);
+  await page.locator('#officeInput').setInputFiles([{
+    name:'service-report.docx',
+    mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer:wordBuffer
+  }]);
+  await page.locator('#officePreview:not(.hidden)').waitFor({timeout:45000});
+  assert.match(await page.locator('#officePreviewContent').innerText(),/設備運作正常/);
+  assert.equal(await page.locator('#officeExport').isEnabled(),true);
+  await page.locator('#officeExport').click();
+  await page.locator('#resultModal:not(.hidden)').waitFor({timeout:55000});
+  const wordDownload=page.waitForEvent('download');
+  await page.locator('#downloadBtn').click();
+  const wordPdf=await wordDownload;
+  const wordBytes=await readFile(await wordPdf.path());
+  const wordResult=await PDFDocument.load(wordBytes);
+  assert.ok(wordResult.getPageCount()>=1);
+  assert.ok(wordBytes.byteLength>10000,'Chinese PDF should have embedded font data');
+  note('DOCX：繁體中文預覽、PDF 匯出成功');
+  await page.locator('#closeResult').click();
+  await page.locator('#officeEntry').click();
+  await page.locator('#officeModal:not(.hidden)').waitFor();
+  const workbook=new ExcelJS.Workbook();
+  const sheet=workbook.addWorksheet('設備紀錄');
+  sheet.addRow(['設備','狀態','備註']);
+  sheet.addRow(['VM800','正常','測試成功']);
+  sheet.addRow(['MEL90','待確認','查核中']);
+  const wb=await workbook.xlsx.writeBuffer();
+  await page.locator('#officeInput').setInputFiles([{
+    name:'equipment.xlsx',
+    mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    buffer:Buffer.from(wb)
+  }]);
+  await page.locator('#officePreview:not(.hidden)').waitFor({timeout:45000});
+  assert.match(await page.locator('#officePreviewContent').innerText(),/測試成功/);
+  assert.match(await page.locator('#officeSheetPick').innerText(),/設備紀錄/);
+  await page.locator('#officeExport').click();
+  await page.locator('#resultModal:not(.hidden)').waitFor({timeout:55000});
+  const excelDownload=page.waitForEvent('download');
+  await page.locator('#downloadBtn').click();
+  const excelFile=await excelDownload;
+  const excelBytes=await readFile(await excelFile.path());
+  const excelResult=await PDFDocument.load(excelBytes);
+  assert.ok(excelResult.getPageCount()>=1);
+  note('XLSX：繁體中文儲存格預覽與 PDF 匯出成功');
+  await page.locator('#closeResult').click();
 
   assert.deepEqual(errors,[],'Browser page errors');
   console.log('ALL SMOKE TESTS PASSED');
