@@ -43,3 +43,37 @@ MVP 原文編輯建議流程：點選原有文字 → 編輯 → 先 dry-run 檢
 2. 增加繁中缺字、不同字長、混合字型、帶表格及簽章案例，維持「無法一致即拒絕修改」規則。
 3. 評估最低成本、安全且自動刪檔的 Python 執行環境。現有 GitHub Pages 為純靜態頁面，**不能直接執行 pikepdf**；不能把任何真實客戶 PDF 上傳到公開 GitHub Actions。
 4. 才能接入 iPhone 的「選取原文 → 編輯 → 預先驗證 → 匯出」工具列；沒有確認原字型可用時禁止輸出。
+
+## 第三輪：保守型原文編輯器與手機流程
+
+**GitHub Actions 已通過** 10 項安全閘門、FastAPI 真正 PDF 原文編輯測試，以及模擬手機尺寸的 PDF.js 操作流程。點選 PDF 原文、改字、預檢、另存 PDF、缺字拒絕、縮放都通過測試。
+
+- `strict_adapter.py`：相同字數、唯一匹配、字型原有字元、乾跑（dry-run）且無 degradation 才允許真正原文修改；原 PDF 一律不覆蓋。
+- `visual_guard.py`：使用 PDFium 比對各頁修改前後影像。非目標區域有像素差異便拒絕輸出。這是保守檢查，**不保證目標文字內部所有字距都精確一致**。
+- `local_server.py` + `local_editor.html` + `local_editor.js`：手機尺寸友善的本機測試介面；傳送 PDF 只到 127.0.0.1 同機 Python 程序，檔案只在暫存目錄處理。
+- `test_local_api.py` 與 `test_mobile.mjs`：真實 PDF bytes API 測試、Chrome 模擬手機觸控及 PDF 匯出測試。
+
+### 如何在電腦本機啟動研究介面（非 iPhone 獨立運行）
+
+電腦安裝 Python 3.12+ 後從專案根目錄執行：
+
+```bash
+python -m pip install -r poc/original-text-edit/requirements.txt
+python -m uvicorn local_server:app --app-dir poc/original-text-edit --host 127.0.0.1 --port 8765
+```
+
+同一台電腦打開 `http://127.0.0.1:8765/`。**請勿改成 0.0.0.0 對外開放，也不可拿公司機密文件上傳 GitHub Actions。** 這是尚未經過完整惡意 PDF 安全審查的開發原型。
+
+### 距離正式 iPhone 網站還缺少什麼？
+
+這個 Python 引擎不能在純 GitHub Pages 執行。要在 iPhone Safari 直接用，必須：
+1. 找到真正可用且經資源／惡意檔測試的 WebAssembly 本機方案；或
+2. 部署**安全的後端運算服務**並清楚告知使用者文件會離開手機，完成端到端隱私、安全與費用評估後再開啟。
+
+目前兩者皆尚未完成；正式網站依舊維持既有的 PDF 合併、註記等功能。原字型新字缺字、不同字數、刪除原字與特殊排版仍被保守拒絕，不能稱為完整的 PDF 原文字編輯器。
+
+### 開發風險
+
+- `proof.py` 中的 simple-font ToUnicode 相容實驗補丁僅供合成 PDF 技術測試。**本機 API 未載入此補丁**，因此只處理開源引擎已原生支援、可通過字型及像素比對的 PDF。
+- 假設文件為可選文字 PDF，非 OCR、非含保護密碼、非數位簽章的 PDF。
+- 色彩、字體同一性由開源引擎及可見像素比較雙重檢查，但仍未達所有 PDF 的形式驗證。
