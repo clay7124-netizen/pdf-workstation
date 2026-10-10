@@ -190,6 +190,9 @@ def main() -> None:
                     out.write(f" — {t['error_type']}")
                 out.write("\n")
             out.write("\n未通過不代表可以直接上線；下一步需驗證中文字型、內容指令與視覺差異。\n")
+        # A green workflow must mean all fidelity requirements passed.
+        if not report["all_pass"]:
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":
