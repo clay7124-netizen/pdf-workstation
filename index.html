@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=yes">
 <meta name="theme-color" content="#173b63"><meta name="description" content="手機 PDF 工作台：本機合併、分割、頁面整理、轉檔、簽名與新增文字。免費測試版。"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>PDF 工作台 v0.3.1｜手機 PDF 編輯、合併、預覽與圖片旋轉</title>
+<title>PDF 工作台 v0.4｜手機 PDF 編輯、合併、預覽與圖片旋轉</title>
 <style>
 :root{--navy:#173b63;--navy2:#2c577f;--ink:#1c3149;--muted:#75849a;--blue:#ebf2fb;--border:#dce5ef;--bg:#f5f8fc;--white:#fff;--green:#248166;--red:#bf4559;--shadow:0 10px 28px #173b6314}
 *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;margin:0;color:var(--ink);-webkit-tap-highlight-color:transparent}button,input,select,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{opacity:.4;cursor:not-allowed}.hidden{display:none!important}.container{max-width:850px;margin:auto;padding:20px 17px 125px}.topbar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);background:white;position:sticky;top:0;z-index:20}.logo{background:var(--navy);width:42px;height:42px;color:white;display:grid;place-items:center;border-radius:13px;font-weight:900;font-size:21px}.topbar h1{margin:0;font-size:19px}.topbar p{margin:3px 0 0;font-size:12px;color:var(--muted)}.right{margin-left:auto}.chip{font-size:11px;border-radius:20px;background:#dcefe7;color:#18644e;padding:5px 9px;font-weight:700}.h1{font-size:28px;letter-spacing:-.7px;line-height:1.2;margin:14px 0 8px}.sub{line-height:1.6;color:var(--muted);font-size:14px}.upload{display:flex;min-height:170px;border:2px dashed #b3c5d8;border-radius:22px;background:#fff;align-items:center;justify-content:center;flex-direction:column;padding:23px;gap:9px;text-align:center;cursor:pointer;margin-top:24px}.upload strong{font-size:16px}.upload small{color:var(--muted)}.upload-icon{font-size:31px;background:var(--blue);border-radius:20px;padding:12px 21px;color:var(--navy)}.section-title{font-weight:750;margin:30px 0 14px;font-size:16px}.tiles{display:grid;grid-template-columns:1fr 1fr;gap:11px}.tile{border:1px solid var(--border);background:#fff;border-radius:18px;text-align:left;padding:16px 13px;min-height:114px;box-shadow:0 2px 6px #173b6305;display:flex;flex-direction:column;gap:6px}.tile:active{background:#f0f5fb}.tile .em{font-size:27px}.tile strong{font-size:15px}.tile small{color:var(--muted);font-size:12px}.tile.wide{grid-column:span 2;min-height:98px}.note{padding:13px 15px;background:#eef4fa;border:1px solid #d6e3f1;border-radius:13px;color:#496783;font-size:12px;line-height:1.7;margin-top:24px}.card{background:white;border-radius:18px;border:1px solid var(--border);padding:16px;margin:15px 0;box-shadow:0 2px 8px #173b6306}.row{display:flex;align-items:center;gap:10px}.row.wrap{flex-wrap:wrap}.row.gap{gap:14px}.grow{flex:1;min-width:0}.small{font-size:12px;color:var(--muted)}.label{font-weight:650;margin:8px 0 10px}.control{padding:11px 12px;border:1px solid #c8d6e4;border-radius:11px;min-height:44px;background:#fff;color:var(--ink);outline:none;width:100%}.btn{border:1px solid var(--border);background:white;color:var(--navy);border-radius:12px;padding:11px 15px;min-height:44px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn.primary{background:var(--navy);border-color:var(--navy);color:white}.btn.danger{color:var(--red)}.btn.ghost{background:transparent;border:none}.btn.sm{min-width:44px;min-height:44px;padding:7px}.btn.block{width:100%}.footer-actions{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(14px);padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border);z-index:10}.footer-actions>div{display:flex;gap:9px;max-width:850px;margin:auto}.footer-actions .btn{flex:1}.file-row{border:1px solid var(--border);background:white;border-radius:13px;display:flex;align-items:center;gap:9px;padding:9px;margin:10px 0}.file-row .number{border-radius:10px;background:#e9f0f9;padding:8px;min-width:35px;text-align:center;color:var(--navy);font-weight:800}.file-name{font-weight:650;font-size:13px;overflow-wrap:anywhere}.file-row .grow{padding:2px 0}.status{padding:12px;border-radius:11px;font-size:13px;margin:12px 0;line-height:1.6;background:#f3f7fb;border:1px solid var(--border)}.status.error{background:#fff0f1;border-color:#f2c5cb;color:#a62f44}.status.ok{background:#eaf8f0;border-color:#bde1cb;color:#246747}.naked{border:0;background:none;color:var(--navy);padding:6px;font-weight:700}.pill{font-size:12px;border-radius:22px;padding:5px 9px;color:var(--muted);border:1px solid var(--border)}.thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:13px;margin:18px 0}.thumb-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}.thumb-image{aspect-ratio:.72;background:#edf3f9;border-radius:9px;display:flex;align-items:center;justify-content:center;overflow:hidden}.thumb-image canvas,.thumb-image img{max-width:100%;max-height:100%;object-fit:contain}.thumb-title{font-size:12px;font-weight:700;text-align:center}.thumb-btns{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px}.thumb-btns .btn{min-width:44px;min-height:44px;padding:5px}.muted{opacity:.45}.toolbar{display:flex;gap:7px;overflow-x:auto;padding:7px 2px;scrollbar-width:none}.toolbar .btn{white-space:nowrap;flex-shrink:0}.toolbar .btn.active{background:var(--blue);border-color:#7ca4d1}.viewer-box{border-radius:16px;border:1px solid var(--border);background:#e2e9f1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:260px;overflow:auto;position:relative}.page-wrap{position:relative;display:block;max-width:100%;box-shadow:0 2px 18px #24456440;background:white;touch-action:pan-y}.page-wrap canvas{display:block;width:100%;height:auto}.annotation{position:absolute;white-space:pre-wrap;padding:3px 4px;cursor:grab;touch-action:none;min-width:22px;min-height:23px;user-select:none;border:1px dashed transparent}.annotation.selected{border:1px dashed #2472c8;background:#2686c810}.annotation img{display:block;max-width:100%;height:auto;pointer-events:none}.annotation.signature{background:transparent}.stack{display:grid;gap:11px}.editor-panel{background:#fff;border:1px solid var(--border);padding:15px;border-radius:16px;margin:10px 0}.field{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.field label{font-size:12px;color:var(--muted);font-weight:650}.field input[type=color]{height:44px;padding:4px;border:1px solid var(--border);border-radius:10px;width:55px}.sigcanvas{display:block;width:100%;height:130px;background:white;border:1px dashed #90acc6;border-radius:14px;touch-action:none}.bubble{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:30;background:#173b63;color:#fff;padding:11px 19px;border-radius:25px;box-shadow:var(--shadow);font-size:13px;max-width:90%;text-align:center}.empty{color:var(--muted);font-size:13px;text-align:center;padding:18px}.tool-note{border-left:4px solid #9bbddd;padding:12px;background:#eef5fd;border-radius:6px;font-size:13px;line-height:1.65}.modal{position:fixed;inset:0;z-index:45;background:#152b428a;display:flex;align-items:flex-end;justify-content:center}.modal-body{width:100%;max-width:530px;background:white;border-radius:25px 25px 0 0;padding:22px 18px 25px;max-height:90vh;overflow:auto}.offlabel{color:var(--muted);font-size:12px}.loading{position:fixed;inset:0;background:#ffffffb9;display:grid;place-content:center;text-align:center;z-index:99;backdrop-filter:blur(3px)}.spinner{border:3px solid #bcd1e6;border-top-color:var(--navy);width:46px;height:46px;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}@keyframes spin{to{transform:rotate(360deg)}}@media(min-width:700px){.tiles{grid-template-columns:repeat(3,1fr)}.tile.wide{grid-column:span 1}.container{padding-top:30px}.h1{font-size:36px}.viewer-box{min-height:450px}}@media(max-width:400px){.thumb-grid{grid-template-columns:1fr 1fr}.file-row{gap:4px}.file-row .btn.sm{min-width:35px}}
@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="enhancements.css?v=3">
 </head>
 <body>
-<header class="topbar"><div class="logo">PDF</div><div><h1>PDF 工作台</h1><p>手機優先 · 本機處理 · v0.3.1 測試版</p></div><span class="right chip">免登入</span></header>
+<header class="topbar"><div class="logo">PDF</div><div><h1>PDF 工作台</h1><p>手機優先 · 本機處理 · v0.4 測試版</p></div><span class="right chip">免登入</span></header>
 <main class="container">
 <section id="home"><h2 class="h1">手機上的 PDF 工作台</h2><p class="sub">合併、分割、整理頁面、加入內容。檔案在瀏覽器內處理，不必上傳伺服器。</p><div class="upload" id="homeUpload" role="button" tabindex="0" aria-label="選擇 PDF 或圖片"><div class="upload-icon">↥</div><strong>選取 PDF 或圖片</strong><small>可從 iPhone「檔案」或相簿選擇（JPG、PNG）</small></div><input id="homeInput" type="file" accept=".pdf,application/pdf,image/jpeg,image/png" multiple hidden><div id="homeSelected" class="hidden"></div><h3 class="section-title">選擇工具</h3><div class="tiles"><button class="tile" data-tool="merge"><span class="em">▣</span><strong>合併 PDF</strong><small>把多個 PDF 整合成一份</small></button><button class="tile" data-tool="split"><span class="em">✂</span><strong>分割 PDF</strong><small>擷取特定頁面</small></button><button class="tile" data-tool="organize"><span class="em">▦</span><strong>整理頁面</strong><small>排序、旋轉、刪除</small></button><button class="tile" data-tool="images"><span class="em">▧</span><strong>圖片轉 PDF</strong><small>將多張圖片製作成 PDF</small></button><button class="tile wide" data-tool="edit"><span class="em">✎</span><strong>一般編輯</strong><small>文字、圖片、簽名、格式刷</small></button></div><div class="note"><strong>原文編輯說明：</strong>目前可新增文字或圖片，但<strong>不能直接修改 PDF 內原有文字</strong>。原文字型精確繼承與原文格式刷仍需要經驗證的專業引擎；本版本不會用白框覆蓋來冒充原文修改。網頁工具目前每次使用需連線載入程式庫；尚未支援離線。<div style="margin-top:10px"><strong>進階功能未開放：</strong>原文直接修改、原文格式刷、Word／Excel 互轉、OCR。請勿將新增標註誤認為真正修改原始 PDF 文字。</div></div></section>
 <section id="work" class="hidden"><div class="row"><button class="btn ghost" id="backBtn">← 返回</button><span id="workTag" class="pill">PDF</span></div><h2 class="h1" id="workTitle">合併 PDF</h2><p class="sub" id="workDesc"></p><div id="workBody"></div><div id="workStatus"></div></section>
@@ -88,39 +88,63 @@ async function exportEdited(){
   await busy('正在產生編輯後 PDF…',async()=>{
     const {PDFLib}=engines();
     const doc=await PDFLib.PDFDocument.load(app.pdfBytes);
-    const fonts={};
-    const needsCJK=app.ann.some(a=>a.kind==='text'&&/[^\u0000-\u00ff]/.test(a.text));
-    if(needsCJK){
-      if(!window.fontkit) throw Error('字型處理庫未載入，請檢查網路。');
+    // PDF v0.4: each annotation uses its explicitly chosen font when exported.
+    // Never substitute a mismatched font silently; all Chinese presets are licensed OFL.
+    const fontCache=new Map();
+    const requiresFontkit=app.ann.some(a=>a.kind==='text'&&
+      (/[\u0100-\uffff]/.test(a.text)||['NotoSansTC','NotoSerifTC','UploadedFont'].includes(a.font)));
+    if(requiresFontkit){
+      if(!window.fontkit)throw Error('字型處理庫未載入，請確認網路連線。');
       doc.registerFontkit(window.fontkit);
-      let regularBytes=app.uploadedFont;
-      if(!regularBytes){
-        const resp=await fetch(notoRegularURL);
-        if(!resp.ok) throw Error('中文字型下載失敗；請保持連線，或自行載入 .ttf/.otf 字型。');
-        regularBytes=new Uint8Array(await resp.arrayBuffer());
-      }
-      try{fonts.chinese=await doc.embedFont(regularBytes,{subset:false});}
-      catch(e){throw Error('無法嵌入中文字型，請改用合法 TTF 字型檔再試一次。');}
-      const needsBold=app.ann.some(a=>a.kind==='text'&&a.weight==='bold'&&/[^\u0000-\u00ff]/.test(a.text));
-      if(needsBold&&app.uploadedFont)throw Error('自選中文字型目前無法驗證對應的粗體檔。請改為一般字重，或清除自選字型以使用內建 Noto Sans TC 粗體。');
-      if(needsBold&&!app.uploadedFont){
-        try{
-          const resp=await fetch(notoBoldURL);
-          if(!resp.ok)throw Error('繁體中文粗體字型下載失敗');fonts.chineseBold=await doc.embedFont(new Uint8Array(await resp.arrayBuffer()),{subset:false});
-        }catch(e){throw Error('繁體中文粗體字型無法載入。請檢查連線或改用一般文字；系統不會偷偷以一般字型替代粗體。');}
-      }
     }
-    const standard=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
-    const bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-    const times=await doc.embedFont(PDFLib.StandardFonts.TimesRoman);
-    const timesBold=await doc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+    const getFontFor=async a=>{
+      const isChinese=/[^\u0000-\u00ff]/.test(a.text);
+      const id=a.font||'NotoSansTC';
+      const bold=a.weight==='bold';
+      if(id==='Helvetica'||id==='Times'){
+        if(isChinese)throw Error('目前選擇的 '+id+' 不包含繁體中文，請改選「思源黑體」或「思源宋體」，不能偷偷以別的字型替代。');
+        const std=id==='Times'
+          ?(bold?PDFLib.StandardFonts.TimesRomanBold:PDFLib.StandardFonts.TimesRoman)
+          :(bold?PDFLib.StandardFonts.HelveticaBold:PDFLib.StandardFonts.Helvetica);
+        const key='std:'+std;
+        if(!fontCache.has(key))fontCache.set(key,await doc.embedFont(std));
+        return fontCache.get(key);
+      }
+      if(!['NotoSansTC','NotoSerifTC','UploadedFont'].includes(id))
+        throw Error('找不到所選的字型。請重新選擇字型。');
+      if(id==='UploadedFont'&&!app.uploadedFont)
+        throw Error('尚未載入自選字型，請先選擇您有權使用的 TTF／OTF 字型檔。');
+      if(id==='UploadedFont'&&bold)
+        throw Error('自選字型未提供可驗證的粗體字型檔，請先選「一般」字重。');
+      const key=id+':'+(bold?'bold':'normal');
+      if(!fontCache.has(key)){
+        let bytes;
+        if(id==='UploadedFont') bytes=app.uploadedFont;
+        else {
+          const path=id==='NotoSerifTC'
+            ?'Serif/SubsetOTF/TC/NotoSerifTC-'+(bold?'Bold':'Regular')+'.otf'
+            :'Sans/SubsetOTF/TC/NotoSansTC-'+(bold?'Bold':'Regular')+'.otf';
+          const url='https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/'+path;
+          const resp=await fetch(url);
+          if(!resp.ok)throw Error('無法下載 '+(id==='NotoSerifTC'?'思源宋體':'思源黑體')+'，請確認網路連線。');
+          bytes=new Uint8Array(await resp.arrayBuffer());
+        }
+        try{fontCache.set(key,await doc.embedFont(bytes,{subset:false}));}
+        catch{throw Error('字型嵌入失敗。請確認您選擇的字型支援 PDF 嵌入。');}
+      }
+      const font=fontCache.get(key);
+      const charSet=new Set(font.getCharacterSet());
+      const missing=[...new Set(Array.from(a.text).filter(c=>!/[\r\n]/.test(c)&&!charSet.has(c.codePointAt(0))))];
+      if(missing.length)throw Error('字型缺少必要字元：'+missing.slice(0,12).join('')+'。請改選其他字型或載入合法的完整字型。');
+      return font;
+    };
     for(const a of app.ann){
       const page=doc.getPage(a.page),rot=page.getRotation().angle;
       if(rot%360!==0) throw Error('此試作版尚不能在旋轉的 PDF 頁面精確添加物件。請先將該頁旋轉歸零再編輯。');
       const W=page.getWidth(),H=page.getHeight(),x=a.x*W,y=H-a.y*H;
       if(a.kind==='text'){
         const chinese=/[^\u0000-\u00ff]/.test(a.text);
-        const font=chinese?(a.weight==='bold'?(app.uploadedFont?fonts.chinese:fonts.chineseBold):fonts.chinese):(a.font==='Times'?(a.weight==='bold'?timesBold:times):(a.weight==='bold'?bold:standard));
+        const font=await getFontFor(a);
         const [r,g,b]=a.color.match(/[\da-f]{2}/gi).map(v=>parseInt(v,16)/255);
         const rows=a.text.split(/\r?\n/);
         rows.forEach((line,i)=>{
