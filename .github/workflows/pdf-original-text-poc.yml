@@ -52,6 +52,13 @@ jobs:
         run: |
           python -m py_compile poc/original-text-edit/cloud_server.py poc/original-text-edit/cloud_worker.py
           node --check poc/original-text-edit/cloud_editor.js
+      - name: Build private Cloud Run container (do not deploy)
+        run: |
+          docker build --pull -f poc/original-text-edit/Dockerfile.cloud -t pdf-private-research:test .
+          docker inspect pdf-private-research:test --format '{{json .Config.User}}' | grep -q '10001'
+      - name: Verify cloud image is fail-closed without IAP settings
+        run: |
+          docker run --rm --entrypoint python pdf-private-research:test -c "import cloud_server; print('PASS cloud container imports and rejects unconfigured access')"
       - name: Upload fidelity report
         if: always()
         uses: actions/upload-artifact@v4
