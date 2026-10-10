@@ -18,6 +18,27 @@ const pdfFiles=[
   {name:'first.pdf',mimeType:'application/pdf',buffer:fixtureA},
   {name:'second.pdf',mimeType:'application/pdf',buffer:fixtureB},
 ];
+/** Inject an EXIF Orientation tag into a landscape JPEG, as produced by iPhones.
+ * The JPEG pixels remain 160×80; Orientation=6 means viewers should show them 80×160.
+ */
+function jpegWithOrientation(jpeg, orientation) {
+  assert.equal(jpeg[0], 0xff);
+  assert.equal(jpeg[1], 0xd8);
+  const exif = Buffer.alloc(6+8+2+12+4);
+  exif.write('Exif', 0, 'ascii');
+  exif.write('II', 6, 'ascii');
+  exif.writeUInt16LE(42, 8);
+  exif.writeUInt32LE(8, 10);
+  exif.writeUInt16LE(1, 14);
+  exif.writeUInt16LE(0x0112, 16);
+  exif.writeUInt16LE(3, 18);
+  exif.writeUInt32LE(1, 20);
+  exif.writeUInt16LE(orientation, 24);
+  exif.writeUInt32LE(0, 28);
+  const marker = Buffer.from([0xff, 0xe1, (exif.length + 2) >> 8, (exif.length + 2) & 0xff]);
+  return Buffer.concat([jpeg.subarray(0,2), marker, exif, jpeg.subarray(2)]);
+}
+
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox']});
 const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,acceptDownloads:true});
 const errors=[];
@@ -70,6 +91,37 @@ try{
   const d=await downloadResult(1);
   assert.ok(d.getPage(0).getSize().height>d.getPage(0).getSize().width,'旋轉 90 度後應為直式頁面');
   note('圖片旋轉 90 度且輸出 PDF 確實變成直向');
+  await page.locator('#backBtn').click();
+
+  // A landscape JPEG where the orientation metadata tells iOS to display it portrait.
+  // In the old implementation the preview was portrait but the exported PDF was landscape.
+  const jpeg = await page.evaluate(() => {
+    const c=document.createElement('canvas'); c.width=160; c.height=80;
+    const ctx=c.getContext('2d'); ctx.fillStyle='#dd2626';ctx.fillRect(0,0,80,80);
+    ctx.fillStyle='#2464d8';ctx.fillRect(80,0,80,80);
+    return c.toDataURL('image/jpeg',0.98).split(',')[1];
+  });
+  const exifFile={name:'iphone-exif-orientation-6.jpg',mimeType:'image/jpeg',
+    buffer:jpegWithOrientation(Buffer.from(jpeg,'base64'),6)};
+  await page.locator('[data-tool="images"]').click();
+  await page.locator('#toolInput').setInputFiles([exifFile]);
+  await page.waitForFunction(() => {
+    const c=document.querySelector('.image-preview-canvas');
+    return c && c.width>0 && c.height>0;
+  });
+  const preview = await page.locator('.image-preview-canvas').evaluate(c=>({w:c.width,h:c.height}));
+  assert.ok(preview.h>preview.w,'EXIF 6 JPG should display portrait in the preview');
+  const pdf0 = await downloadResult(1);
+  assert.ok(pdf0.getPage(0).getSize().height>pdf0.getPage(0).getSize().width,
+    'EXIF 6 JPG without manual rotation should export portrait, matching preview');
+  note('EXIF 6：預覽直式，0° 匯出保持直式');
+  await page.locator('[data-imgrotate="0,90"]').click();
+  await page.waitForFunction(()=>document.querySelector('.image-preview-canvas')?.width >
+    document.querySelector('.image-preview-canvas')?.height);
+  const pdf90 = await downloadResult(1);
+  assert.ok(pdf90.getPage(0).getSize().width>pdf90.getPage(0).getSize().height,
+    'EXIF 6 JPG with manual +90 rotation should export landscape, matching preview');
+  note('EXIF 6：手動旋轉 90° 後預覽與匯出均為橫式');
   await page.locator('#backBtn').click();
 
   await page.locator('[data-tool="edit"]').click();
