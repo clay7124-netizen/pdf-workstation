@@ -17,6 +17,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check enhancements.js
+          node --check typography-v04.js
           python3 - <<'PY'
           from pathlib import Path
           import re
