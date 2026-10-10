@@ -232,8 +232,10 @@ try{
   await page.locator('#home:not(.hidden)').waitFor();
   // Verify that Office conversion reads real DOCX and XLSX files and produces PDF.
   assert.match(await page.locator('#officeEntry').innerText(),/不保留原排版/);
-  assert.equal(await page.locator('#officeLayoutEntry').getAttribute('href'),'https://rhgx.github.io/libre-convert/');
-  assert.match(await page.locator('#officeLayoutEntry').innerText(),/不保證與 Microsoft Office 完全一致/);
+  assert.equal(await page.locator('#officeLayoutEntry').getAttribute('href'),'https://support.microsoft.com/zh-tw/office/collab-files/save-or-convert-to-pdf-or-xps-in-office-desktop-apps');
+  assert.match(await page.locator('#officeLayoutEntry').innerText(),/原生匯出/);
+  assert.match(await page.locator('#home').innerText(),/LibreOffice 網頁轉檔出現/);
+  assert.equal(await page.locator('a[href="https://rhgx.github.io/libre-convert/"]').count(),0);
   await page.locator('#officeEntry').click();
   await page.locator('#officeModal:not(.hidden)').waitFor();
   const word = new Document({sections:[{children:[
