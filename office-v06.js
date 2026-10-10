@@ -8,8 +8,8 @@
   modal.id='officeModal';modal.className='modal hidden';
   modal.innerHTML=[
     '<div class="modal-body office-modal-body" role="dialog" aria-label="Office 轉 PDF">',
-    '<div class="row" style="justify-content:space-between"><h3>Word／Excel 轉 PDF</h3><button class="btn sm" id="officeClose">✕ 關閉</button></div>',
-    '<p class="small">基本轉換測試版。檔案僅在手機瀏覽器中處理；PDF 文字可選取。',
+    '<div class="row" style="justify-content:space-between"><h3>基本內容轉換（不保留格式）</h3><button class="btn sm" id="officeClose">✕ 關閉</button></div>',
+    '<p class="small">此功能會重新編排文字與表格，原字型、字距、分頁與表格位置可能改變，絕對不適合需要維持原稿格式的文件。檔案僅在手機瀏覽器中處理。',
     '支援 .docx、.xlsx，不支援舊版 .doc、.xls。</p>',
     '<label class="office-file-label" for="officeInput">＋ 選擇 Word 或 Excel 文件</label>',
     '<input id="officeInput" type="file" accept=".docx,.xlsx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">',
@@ -176,7 +176,7 @@
       const clean=text=>{
         text=String(text).replace(/[\r\n\t]/g,' ').replace(/[\u0000-\u001f]/g,'');
         const bad=[...new Set([...text].filter(c=>!allowed.has(c.codePointAt(0))))];
-        if(bad.length)throw Error('文件含字型不支援的字元：'+bad.slice(0,6).join('')+'。為防止文字遺失，請先移除該符號再試。');
+        if(bad.length)throw Error('基本轉檔引擎缺少文件字元：'+bad.slice(0,6).join('')+'。請不要刪除原稿符號來湊合轉檔；若要保留原稿字型與格式，請使用 Office 原生匯出，或改試 LibreOffice 版面優先模式。');
         return text;
       };
       const color=window.PDFLib.rgb(.09,.18,.29),gray=window.PDFLib.rgb(.71,.76,.82);
