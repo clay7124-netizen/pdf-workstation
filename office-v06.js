@@ -66,8 +66,21 @@
     for(const el of dom.body.children){
       const tag=el.tagName.toLowerCase();
       if(tag==='table'){
-        const rows=Array.from(el.querySelectorAll('tr')).slice(0,300)
-          .map(tr=>Array.from(tr.children).slice(0,8).map(nodeText));
+        const rawRows=Array.from(el.querySelectorAll('tr'));
+        // Mammoth loses Word table grid/fixed widths. Never silently truncate more
+        // than 8 columns or flatten merged cells in official forms and contracts.
+        // A complex form must be exported in Word or another full layout engine.
+        const complex=rawRows.some(tr=>{
+          const cells=Array.from(tr.children).filter(cell=>['TD','TH'].includes(cell.tagName));
+          const spanTotal=cells.reduce((n,c)=>n+Math.max(1,Number(c.getAttribute('colspan'))||1),0);
+          return spanTotal>8 || cells.some(c=>
+            (Number(c.getAttribute('colspan'))||1)>1 || (Number(c.getAttribute('rowspan'))||1)>1);
+        });
+        if(complex)throw Error('這份 Word 含有跨欄／合併儲存格或超過 8 欄的複雜表格。'
+          +'基本轉檔可能遺失欄位、邊框與頁面配置，已停止以避免產生不完整 PDF。'
+          +'請用 Microsoft Word 原生匯出 PDF；本工具正在研究不破壞版面的轉換方式。');
+        if(rawRows.length>300)throw Error('此 Word 表格超過 300 列。為避免內容遺失，請改用 Word 原生 PDF 匯出。');
+        const rows=rawRows.map(tr=>Array.from(tr.children).filter(c=>['TD','TH'].includes(c.tagName)).map(nodeText));
         if(rows.length)result.push({kind:'table',rows});
       }else if(tag==='ul'||tag==='ol'){
         Array.from(el.querySelectorAll('li')).slice(0,500).forEach(li=>{
