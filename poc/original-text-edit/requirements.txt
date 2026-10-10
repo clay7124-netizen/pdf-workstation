@@ -1,9 +1,11 @@
-# Offline/local experimentation ONLY. Never expose the server to public Internet.
+# Research-only; scan vulnerabilities before public deployment.
 pdf-edit-engine==0.2.0
-reportlab>=4.0,<6
+reportlab>=4,<6
 fpdf2>=2.8,<3
 pypdfium2>=4,<6
 fastapi>=0.115,<1
 python-multipart>=0.0.20,<1
 uvicorn>=0.30,<1
 httpx>=0.28,<1
+google-auth>=2.35,<3
+requests>=2.32,<3
