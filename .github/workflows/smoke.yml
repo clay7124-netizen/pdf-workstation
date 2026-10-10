@@ -19,6 +19,7 @@ jobs:
           node --check enhancements.js
           node --check typography-v04.js
           node --check zoom-v05.js
+          node --check office-v06.js
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -29,7 +30,7 @@ jobs:
           PY
           node --check /tmp/pdf-inline.js
       - name: Install test dependencies
-        run: npm install --no-save playwright@1.56.0 pdf-lib@1.17.1
+        run: npm install --no-save playwright@1.56.0 pdf-lib@1.17.1 exceljs@4.4.0 docx@9.5.1
       - name: Run responsive browser tests
         run: |
           python3 -m http.server 8123 > /tmp/pdf-server.log 2>&1 &
