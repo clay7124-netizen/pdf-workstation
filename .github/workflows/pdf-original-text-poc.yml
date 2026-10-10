@@ -28,6 +28,19 @@ jobs:
         run: python poc/original-text-edit/test_local_api.py
       - name: Check static local editor JavaScript
         run: node --check poc/original-text-edit/local_editor.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify mobile UI against loopback-only API
+        run: |
+          npm install --no-save playwright@1.56.0
+          PYTHONPATH=poc/original-text-edit python -c "from pathlib import Path; from proof import make_chinese_cid; make_chinese_cid(Path('poc/original-text-edit/results/sample_cjk.pdf'))"
+          python -m uvicorn local_server:app --app-dir poc/original-text-edit --host 127.0.0.1 --port 8765 > /tmp/pdf-local-server.log 2>&1 &
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8765/health >/dev/null; then break; fi
+            sleep 1
+          done
+          node poc/original-text-edit/test_mobile.mjs
       - name: Upload fidelity report
         if: always()
         uses: actions/upload-artifact@v4
