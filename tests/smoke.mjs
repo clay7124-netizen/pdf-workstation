@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import {PDFDocument,StandardFonts} from 'pdf-lib';
-import { Document, Packer, Paragraph } from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell } from 'docx';
 import ExcelJS from 'exceljs';
 
 async function sample(label, count) {
@@ -238,6 +238,19 @@ try{
   assert.equal(await page.locator('a[href="https://rhgx.github.io/libre-convert/"]').count(),0);
   await page.locator('#officeEntry').click();
   await page.locator('#officeModal:not(.hidden)').waitFor();
+  const complexForm = new Document({sections:[{children:[new Table({
+    rows:[new TableRow({children:Array.from({length:9},(_,i)=>
+      new TableCell({children:[new Paragraph('欄位'+String(i+1))]}))})]
+  })]}]});
+  await page.locator('#officeInput').setInputFiles([{
+    name:'complex-form.docx',
+    mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer:await Packer.toBuffer(complexForm)
+  }]);
+  await page.waitForFunction(()=>document.querySelector('#officeNotice')?.textContent?.includes('已停止以避免產生不完整 PDF'),
+    null,{timeout:45000});
+  assert.equal(await page.locator('#officeExport').isEnabled(),false);
+  note('Word 複雜表格：拒絕遺失欄位的基本轉檔並提示使用原生匯出');
   const word = new Document({sections:[{children:[
     new Paragraph('服務報告'),
     new Paragraph('設備運作正常，已完成測試'),
