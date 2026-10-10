@@ -22,6 +22,8 @@ jobs:
         run: python -m pip install 'pdf-edit-engine==0.2.0' 'reportlab>=4.0' 'fpdf2>=2.8,<3' 'pypdfium2>=4,<6'
       - name: Run real original-text replacement test
         run: python poc/original-text-edit/proof.py
+      - name: Verify strict preflight and fail-closed editing
+        run: python poc/original-text-edit/test_strict.py
       - name: Upload fidelity report
         if: always()
         uses: actions/upload-artifact@v4
@@ -29,6 +31,7 @@ jobs:
           name: original-text-fidelity-report
           path: |
             poc/original-text-edit/results/report.json
+            poc/original-text-edit/results/strict_policy_report.json
             poc/original-text-edit/results/*_edited.pdf
           if-no-files-found: warn
           retention-days: 7
