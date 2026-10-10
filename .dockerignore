@@ -4,7 +4,7 @@
 poc/**
 !poc/original-text-edit/
 poc/original-text-edit/**
-!poc/original-text-edit/requirements.txt
+!poc/original-text-edit/requirements-cloud.txt
 !poc/original-text-edit/strict_adapter.py
 !poc/original-text-edit/visual_guard.py
 !poc/original-text-edit/cloud_server.py
