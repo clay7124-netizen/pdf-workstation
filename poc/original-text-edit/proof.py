@@ -124,6 +124,63 @@ def make_chinese(path: Path) -> None:
     c.save()
 
 
+def verify_visual_difference(source: Path, edited: Path, old_text: str) -> dict:
+    """Pixel-compare the original page and edited page outside the target text.
+    All geometry is determined from the source PDF text boxes, not guessed.
+    The result cannot prove typographic perfection inside the edited area.
+    """
+    from PIL import Image, ImageChops, ImageDraw
+    import pypdfium2 as pdfium
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LTChar
+
+    def walk(node):
+        if isinstance(node, LTChar):
+            yield node
+        elif hasattr(node, "__iter__"):
+            for sub in node:
+                yield from walk(sub)
+
+    layout = next(iter(extract_pages(str(source))))
+    chars = list(walk(layout))
+    full = "".join(ch.get_text() for ch in chars)
+    at = full.find(old_text)
+    if at < 0:
+        raise AssertionError("Could not locate original editable glyph geometry")
+    selected = chars[at:at + len(old_text)]
+    scale = 2.0
+    left = max(0, min(c.x0 for c in selected) - 7)
+    right = max(c.x1 for c in selected) + 15
+    bottom = max(0, min(c.y0 for c in selected) - 7)
+    top = max(c.y1 for c in selected) + 7
+    doc_before = pdfium.PdfDocument(str(source))
+    doc_after = pdfium.PdfDocument(str(edited))
+    try:
+        assert len(doc_before) == len(doc_after) == 1
+        before = doc_before[0].render(scale=scale).to_pil().convert("RGB")
+        after = doc_after[0].render(scale=scale).to_pil().convert("RGB")
+        if before.size != after.size:
+            raise AssertionError("Edited PDF changes physical page dimensions")
+        height_pt = before.height / scale
+        x0, y0 = int(left * scale), int((height_pt - top) * scale)
+        x1, y1 = int(right * scale), int((height_pt - bottom) * scale)
+        region = (x0, y0, x1, y1)
+        difference = ImageChops.difference(before, after).convert("L")
+        pixel_changed = difference.point(lambda x: 255 if x > 8 else 0)
+        mask = Image.new("L", before.size, 255)
+        ImageDraw.Draw(mask).rectangle(region, fill=0)
+        outside = ImageChops.multiply(pixel_changed, mask)
+        return {
+            "pixels_modified": pixel_changed.getbbox() is not None,
+            "outside_edit_pixels_modified": outside.getbbox() is not None,
+            "allowed_region_pixels": region,
+            "render_size": before.size,
+        }
+    finally:
+        doc_before.close()
+        doc_after.close()
+
+
 def normalized(value: object) -> str:
     return str(value).replace("\n", " ")
 
@@ -191,6 +248,7 @@ def evaluate(label: str, source: Path, original: str, replacement: str) -> dict:
             replaced.success and result["output_text_present"]
             and result["original_text_removed"]
         )
+        result["visual_difference"] = verify_visual_difference(source, dest, original)
         bad = [
             d for d in result["degradations"]
             if d["severity"] in ("error", "warning")
@@ -202,6 +260,8 @@ def evaluate(label: str, source: Path, original: str, replacement: str) -> dict:
                 and not result["overflow_detected"]
                 and result["unmodified_text_preserved"]
                 and not bad
+                and result["visual_difference"]["pixels_modified"]
+                and not result["visual_difference"]["outside_edit_pixels_modified"]
             ) else "fail"
         )
     except Exception as exc:
@@ -249,7 +309,7 @@ def main() -> None:
                 "Only same-length synthetic text evaluated; two CJK generators compared.",
                 "Chinese probe uses Noto Sans TC, not proprietary original fonts.",
                 "Simple-font /ToUnicode shim is an unreviewed experiment, not production code.",
-                "PDF render pixel-diff and complex layouts still need verification.",
+                "Simple synthetic PDF pixel-diff tested; complex layouts still need verification.",
                 "Python + pikepdf cannot run inside a plain static GitHub Pages website.",
             ],
         }
