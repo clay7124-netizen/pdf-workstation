@@ -46,7 +46,7 @@ try{
   await page.locator('[data-tool="merge"]').click();
   await page.locator('#toolInput').setInputFiles(pdfFiles);
   await page.locator('.merge-preview-canvas').first().waitFor();
-  await page.waitForFunction(()=>[...document.querySelectorAll('.merge-preview-canvas')].every(c=>c.width>20 && c.height>20),null,{timeout:30000});
+  await page.waitForFunction(()=>[...document.querySelectorAll('.merge-counter')].length===2 && [...document.querySelectorAll('.merge-counter')].every(c=>/第\s*\d+\s*\/\s*\d+\s*頁/.test(c.textContent)),null,{timeout:30000});
   assert.match(await page.locator('.merge-counter').first().innerText(),/1\s*\/\s*2/);
   await page.locator('[data-mergenav="0,1"]').click();
   await page.waitForFunction(()=>document.querySelector('.merge-counter')?.textContent?.includes('2 / 2'));
