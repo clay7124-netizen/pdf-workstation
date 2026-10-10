@@ -128,6 +128,36 @@ try{
 
   await page.locator('[data-tool="edit"]').click();
   await page.locator('#toolInput').setInputFiles(pdfFiles.slice(0,1));
+  await page.locator('#pdfZoomToolbar').waitFor();
+  const canvasBefore=await page.locator('#pageCanvas').evaluate(c=>c.width);
+  await page.locator('#pdfZoomSlider').evaluate(el=>{
+    el.value='200'; el.dispatchEvent(new Event('input',{bubbles:true}));
+    el.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+  await page.waitForFunction(previous=>document.querySelector('#pageCanvas')?.width>=previous*1.95,canvasBefore,{timeout:30000});
+  assert.equal(await page.locator('#pdfZoomValue').innerText(),'200%');
+  const pageSize=await page.locator('#pageWrap').evaluate(el=>el.getBoundingClientRect().width);
+  assert.ok(pageSize>500,'zoom should enlarge actual PDF preview');
+  await page.locator('#pdfZoomFit').click();
+  await page.waitForFunction(previous=>document.querySelector('#pageCanvas')?.width<=previous*1.1,canvasBefore,{timeout:30000});
+  assert.equal(await page.locator('#pdfZoomValue').innerText(),'100%');
+  note('PDF 文件滑桿放大 200%、縮回 100% 且畫布同步更新');
+  const pinchTest=await page.evaluate(async()=>{
+    const viewer=document.querySelector('.viewer-box');
+    const t=(id,x,y)=>new Touch({identifier:id,target:viewer,clientX:x,clientY:y,pageX:x,pageY:y,screenX:x,screenY:y});
+    const p1=t(1,95,240),p2=t(2,175,240),q2=t(2,255,240);
+    const emit=(kind,touches,changed)=>viewer.dispatchEvent(new TouchEvent(kind,{
+      bubbles:true,cancelable:true,touches,targetTouches:touches,changedTouches:changed}));
+    emit('touchstart',[p1,p2],[p1,p2]);
+    emit('touchmove',[p1,q2],[q2]);
+    emit('touchend',[],[p1,q2]);
+    await new Promise(r=>setTimeout(r,300));
+    return {zoom:app.zoom,label:document.querySelector('#pdfZoomValue')?.textContent};
+  });
+  assert.ok(pinchTest.zoom>1.3,'two finger pinch should zoom in');
+  assert.match(pinchTest.label,/\d+%/);
+  await page.locator('#pdfZoomFit').click();
+  note('雙指放大手勢可控制文件縮放');
   await page.locator('[data-edit="text"]').click();
   await page.locator('#quickTextModal:not(.hidden)').waitFor();
   await page.locator('#quickTextArea').fill('Hello revised');
@@ -142,9 +172,19 @@ try{
   await page.waitForFunction(()=>document.querySelector('#neighborStyleNote')?.textContent?.includes('原文字型'));
   note('取樣附近原文字號與字型提示');
   await page.locator('#txtFont').selectOption('NotoSerifTC');
+  await page.locator('#fontLivePreview').waitFor();
+  assert.match(await page.locator('#fontLiveSample').getAttribute('style'),/PdfNotoSerifTC/);
   await page.locator('#txtBody').fill('思源宋體格式測試');
-  await page.locator('#txtSize').fill('24');
-  await page.locator('#txtSize').dispatchEvent('change');
+  assert.equal(await page.locator('#txtSize').getAttribute('type'),'range');
+  await page.locator('#txtSize').evaluate(el=>{
+    el.value='24';el.dispatchEvent(new Event('input',{bubbles:true}));
+    el.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+  assert.equal(await page.locator('#fontSizeOutput').innerText(),'24 pt');
+  await page.locator('#fontSizePlus').click();
+  assert.equal(await page.locator('#fontSizeOutput').innerText(),'25 pt');
+  await page.locator('#fontSizeMinus').click();
+  assert.equal(await page.locator('#fontSizeOutput').innerText(),'24 pt');
   await page.locator('#txtColor').fill('#1367a2');
   await page.locator('#txtColor').dispatchEvent('change');
   const firstStyle=await page.evaluate(()=>{
