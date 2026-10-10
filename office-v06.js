@@ -238,6 +238,7 @@
         }
       }
       const bytes=await doc.save();
+      modal.classList.add('hidden');
       showResult(bytes,state.file.name.replace(/\.(docx|xlsx)$/i,'')+'_basic.pdf');
       alertUser('完成：共 '+pageCount+' 頁。文字可選取，但複雜 Office 格式不保證相同，請確認 PDF 再使用。');
     }catch(e){alertUser('PDF 產生失敗：'+(e.message||'未知錯誤'),true);}
