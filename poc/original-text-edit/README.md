@@ -17,3 +17,8 @@
 Python 引擎**不能直接放在 GitHub Pages**：下一步若驗證成功，可考慮在有隱私保護的後端執行，或研究原生 WASM 移植。後端不得預設保存上傳文件，也不能將客戶文件傳入 GitHub Actions 或公共儲存庫。
 
 MVP 原文編輯建議流程：點選原有文字 → 編輯 → 先 dry-run 檢查字型與位置 → 僅在全數符合「原字型一致」時允許輸出；格式刷後續才能支援原文。
+
+## GitHub Actions 實測紀錄（第一輪）
+- 英文／數字測試：**通過**。 `2024 → 2025` 的 PDF 原文替換成功，`font_preserved=true`、`overflow_detected=false`，沒有任何 `degradations`。
+- 繁體中文測試：**未通過**。使用 Noto Sans TC、ReportLab 建立的合成 PDF，`pdfminer` 能讀到文字，但 `pdf-edit-engine.get_text()` 回傳空字串，所有 `find()` 查詢均為 0 筆。該內嵌字型是 `NotoSansTC-Thin` 子集，編碼被判為 `WinAnsi`。這是內容指令定位／字型解碼的阻礙，不能聲稱繁體中文可用。
+- 本測試僅驗證可行性，**還沒有真正修改原文字的手機版 UI**。CI 在繁體中文未通過時應標成失敗，而不是綠燈。
