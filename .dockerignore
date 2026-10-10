@@ -1,0 +1,13 @@
+# Build using repository root; upload no private PDFs, test fixtures, git history.
+**
+!poc/
+poc/**
+!poc/original-text-edit/
+poc/original-text-edit/**
+!poc/original-text-edit/requirements.txt
+!poc/original-text-edit/strict_adapter.py
+!poc/original-text-edit/visual_guard.py
+!poc/original-text-edit/cloud_server.py
+!poc/original-text-edit/cloud_worker.py
+!poc/original-text-edit/local_editor.html
+!poc/original-text-edit/cloud_editor.js
