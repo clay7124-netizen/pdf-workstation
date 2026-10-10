@@ -107,7 +107,9 @@ try{
   await page.locator('#toolInput').setInputFiles([exifFile]);
   await page.waitForFunction(() => {
     const c=document.querySelector('.image-preview-canvas');
-    return c && c.width>0 && c.height>0;
+    // <canvas> defaults to 300×150 before the async image has rendered.
+    // Wait for the canvas to be painted before checking the orientation.
+    return c && c.width>0 && c.height>0 && (c.width!==300 || c.height!==150);
   });
   const preview = await page.locator('.image-preview-canvas').evaluate(c=>({w:c.width,h:c.height}));
   assert.ok(preview.h>preview.w,'EXIF 6 JPG should display portrait in the preview');
