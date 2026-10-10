@@ -135,6 +135,45 @@ try{
   await page.locator('.annotation').filter({hasText:'Hello revised'}).waitFor();
   await page.locator('#txtBody').fill('Updated by textarea');
   await page.locator('.annotation').filter({hasText:'Updated by textarea'}).waitFor();
+  // Verify the font selector actually exposes Traditional Chinese presets.
+  assert.equal(await page.locator('#txtFont option').count(),5);
+  assert.equal(await page.locator('#txtFont').inputValue(),'NotoSansTC');
+  await page.locator('#sampleNeighborFont').click();
+  await page.waitForFunction(()=>document.querySelector('#neighborStyleNote')?.textContent?.includes('原文字型'));
+  note('取樣附近原文字號與字型提示');
+  await page.locator('#txtFont').selectOption('NotoSerifTC');
+  await page.locator('#txtBody').fill('思源宋體格式測試');
+  await page.locator('#txtSize').fill('24');
+  await page.locator('#txtSize').dispatchEvent('change');
+  await page.locator('#txtColor').fill('#1367a2');
+  await page.locator('#txtColor').dispatchEvent('change');
+  const firstStyle=await page.evaluate(()=>{
+    const x=app.ann.find(a=>a.kind==='text');
+    return {font:x.font,size:x.size,color:x.color,weight:x.weight};
+  });
+  assert.equal(firstStyle.font,'NotoSerifTC');
+  await page.locator('[data-edit="text"]').click();
+  await page.locator('#quickTextArea').fill('第二段新增文字');
+  await page.locator('#quickTextDone').click();
+  const n=await page.evaluate(()=>app.ann.filter(a=>a.kind==='text').length);
+  assert.equal(n,2);
+  // Make the first annotation the format source, then paint the second through its UI.
+  await page.evaluate(()=>{
+    app.selected=app.ann[0].id;
+    editorProperties();
+    renderAnnotations();
+  });
+  await page.locator('[data-edit="paint"]').click();
+  await page.locator('#formatBrushGuide:not(.hidden)').waitFor();
+  await page.locator('.annotation').last().dispatchEvent('pointerdown',{
+    pointerId:1,pointerType:'mouse',clientX:100,clientY:100,bubbles:true
+  });
+  const secondStyle=await page.evaluate(()=>{
+    const a=app.ann.filter(a=>a.kind==='text')[1];
+    return {font:a.font,size:a.size,color:a.color,weight:a.weight};
+  });
+  assert.deepEqual(secondStyle,firstStyle);
+  note('免費繁體中文字型切換、格式刷套用字號與顏色');
   await page.locator('#inspectOriginalBtn').click();
   await page.locator('#originalInspector:not(.hidden)').waitFor();
   await page.waitForFunction(()=>document.querySelector('#inspectorResult')?.textContent?.includes('範例：'));
