@@ -14,7 +14,28 @@ MAX_PIXELS_PER_PAGE = 8_000_000
 
 
 def verify_only_target_changed(source: str, edited: str, page_index: int,
-                               bbox: tuple[float, float, float, float]) -> dict:
+                               target_text: str) -> dict:
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LTChar
+
+    def walk(node):
+        if isinstance(node, LTChar):
+            yield node
+        elif hasattr(node, "__iter__"):
+            for child in node:
+                yield from walk(child)
+
+    layouts=extract_pages(str(source),page_numbers=[page_index])
+    page_layout=next(iter(layouts))
+    chars=list(walk(page_layout))
+    full_text="".join(ch.get_text() for ch in chars)
+    found=full_text.find(target_text)
+    if found<0 or full_text.find(target_text,found+1)>=0:
+        raise ValueError("Pixel verifier cannot locate unique original text")
+    selected=chars[found:found+len(target_text)]
+    bbox=(min(x.x0 for x in selected),min(x.y0 for x in selected),
+          max(x.x1 for x in selected),max(x.y1 for x in selected))
+
     before_doc=pdfium.PdfDocument(str(source))
     after_doc=pdfium.PdfDocument(str(edited))
     try:
