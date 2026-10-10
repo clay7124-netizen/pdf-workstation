@@ -1,0 +1,12 @@
+.office-modal-body{max-width:700px;max-height:93dvh;overflow:auto;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+.office-modal-body h3{margin:0}.office-file-label{display:block;border:2px dashed #b3c5d8;border-radius:13px;padding:14px;margin:14px 0 8px;text-align:center;color:#173b63;font-weight:750}
+#officeInput{display:block;width:100%;font-size:13px}
+.office-notice{padding:11px;border-radius:9px;background:#e8f3fa;color:#2a5577;margin-top:10px;font-size:12px;line-height:1.6}
+.office-notice.office-error{background:#fff0ef;color:#a02e31}
+.office-preview{background:#fff;border:1px solid #ccdbe9;border-radius:12px;padding:11px;margin-top:12px}
+.office-preview-content{overflow:auto;max-height:37dvh;margin-top:10px;background:#fafcff;border:1px solid #e3ecf3;border-radius:8px;padding:9px;font-size:12px}
+.office-preview-head{font-size:16px;font-weight:750;margin:9px 0}.office-preview-line{margin:5px 0}
+.office-table{border-collapse:collapse;min-width:100%;font-size:11px}
+.office-table td{border:1px solid #cbd9e8;padding:5px;white-space:nowrap}
+.office-warning{background:#fff8eb;padding:12px;border-left:4px solid #d09c3c;border-radius:8px;margin:15px 0;font-size:12px;line-height:1.65}
+@media(min-width:700px){.office-modal-body{border-radius:20px;align-self:center;margin:auto}}
