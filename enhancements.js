@@ -179,7 +179,9 @@
     });
   }
 
-  function paintImageRotated(ctx, bitmap, angle, scale) {
+  function paintImageRotated(canvasOrContext, bitmap, angle, scale) {
+    const ctx = canvasOrContext.getContext ? canvasOrContext.getContext('2d') : canvasOrContext;
+    if (!ctx) throw new Error('無法建立圖片處理畫布');
     const w = bitmap.width * scale;
     const h = bitmap.height * scale;
     const rad = angle * Math.PI / 180;
