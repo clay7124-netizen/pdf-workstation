@@ -1,4 +1,4 @@
-# PDF 工作台 v0.6｜手機優先、本機 PDF 工具
+# PDF 工作台 v0.6.2｜手機優先、本機 PDF 工具
 
 線上使用：https://clay7124-netizen.github.io/pdf-workstation/
 
@@ -9,6 +9,11 @@
 - 新增文字可用思源黑體／思源宋體、上傳合法 TTF/OTF，自訂顏色、字號滑桿、格式刷（只適用自己新增的文字框）。
 - PDF 編輯支援雙指縮放、滑桿縮放、取樣附近文字字號（**不保證完全沿用原始字型**）。
 - **v0.6 新增 Office 基本轉檔**：DOCX、XLSX → 文字可選取的 PDF；手機可預覽 Word 段落及 Excel 工作表，無需上傳使用者文件。
+
+## Office 精確保留版面的現況（2026-10-10）
+- **本站無法保證 Office → PDF 與原稿格式完全相同。** 請優先使用建立文件的 Microsoft Word／Excel 原生 PDF 匯出（需具備相同字型及印表設定）。
+- 曾提供的免費 LibreOffice WebAssembly 第三方網站，在 iPhone 使用者實測中出現大量中文字變方框與表格分頁錯誤，**已從首頁下架、不再推薦作為保真轉檔**。
+- 網站首頁改提供 Microsoft 官方 Word／Excel 原生匯出操作說明。內容轉換功能仍可用，但僅適合不要求維持原稿版面的文件。
 
 ## Office 轉檔的明確限制
 Word 使用 Mammoth 解析語義結構；Excel 使用 ExcelJS 解析儲存格；PDF 由 pdf-lib 重新排版，因此與 Office 原生輸出有差異：
