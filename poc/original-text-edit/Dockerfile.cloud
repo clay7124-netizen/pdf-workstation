@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     HOME=/tmp \
     PORT=8080
 WORKDIR /app
-COPY poc/original-text-edit/requirements.txt /app/requirements.txt
+COPY poc/original-text-edit/requirements-cloud.txt /app/requirements-cloud.txt
 RUN python -m pip install --no-cache-dir -r /app/requirements.txt
 COPY poc/original-text-edit/strict_adapter.py /app/
 COPY poc/original-text-edit/visual_guard.py /app/
