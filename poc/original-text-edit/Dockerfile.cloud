@@ -1,0 +1,21 @@
+# Private Cloud Run prototype. Build context MUST be repository root.
+FROM python:3.12-slim-bookworm
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HOME=/tmp \
+    PORT=8080
+WORKDIR /app
+COPY poc/original-text-edit/requirements.txt /app/requirements.txt
+RUN python -m pip install --no-cache-dir -r /app/requirements.txt
+COPY poc/original-text-edit/strict_adapter.py /app/
+COPY poc/original-text-edit/visual_guard.py /app/
+COPY poc/original-text-edit/cloud_server.py /app/
+COPY poc/original-text-edit/cloud_worker.py /app/
+COPY poc/original-text-edit/local_editor.html /app/
+COPY poc/original-text-edit/cloud_editor.js /app/
+RUN groupadd -g 10001 pdfapp \
+ && useradd -u 10001 -g 10001 -M -s /usr/sbin/nologin pdfapp
+USER 10001:10001
+# Access logs disabled; Google infrastructure may still record metadata.
+CMD ["sh", "-c", "exec python -m uvicorn cloud_server:app --host 0.0.0.0 --port $PORT --workers 1 --no-access-log --log-level warning"]
