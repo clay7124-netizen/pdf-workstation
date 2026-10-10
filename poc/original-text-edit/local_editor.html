@@ -1,0 +1,126 @@
+<!doctype html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>PDF 工作台｜原文修改研究版（僅本機）</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;color:#1b314e;background:#f4f7fb}
+*{box-sizing:border-box}body{margin:0}header{background:#19395c;color:#fff;padding:18px max(16px,env(safe-area-inset-left));font-weight:800;font-size:21px}
+header small{display:block;font-size:12px;font-weight:400;opacity:.84;margin-top:4px}
+main{max-width:790px;padding:16px;margin:0 auto;display:grid;gap:13px}
+.card{background:#fff;border:1px solid #d7e1ee;border-radius:16px;padding:15px;box-shadow:0 2px 9px #122d4910}
+label{display:block;font-weight:700;font-size:14px;margin-bottom:7px}
+input[type=file],textarea{width:100%;border:1px solid #abbdd3;border-radius:10px;background:white;padding:12px;font:inherit;font-size:16px}
+textarea{resize:vertical;min-height:70px}
+button{cursor:pointer;background:#173a60;color:white;border:0;border-radius:10px;font:inherit;font-weight:650;min-height:44px;padding:10px 16px}
+button:disabled{opacity:.43;cursor:not-allowed}
+button.secondary{background:#edf2f8;color:#173a60}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>button{flex:1}
+.note{font-size:13px;line-height:1.55;color:#566d84}
+.info{background:#e6f2fd;border-radius:12px;padding:13px;font-size:14px;line-height:1.55}
+.warn{background:#fff4e5;padding:12px;border-radius:11px;font-size:13px;line-height:1.55}
+#viewer{background:#dfe9f4;border-radius:12px;padding:12px;overflow:auto;max-height:57dvh;text-align:center}
+#stage{position:relative;display:inline-block;max-width:none;vertical-align:top}
+#pageCanvas{display:block;background:white;box-shadow:0 1px 8px #163b5c36}
+#textOverlay{position:absolute;inset:0;pointer-events:none}
+.hit{position:absolute;pointer-events:auto;background:transparent;border:1px solid transparent;padding:0;min-height:1px;border-radius:0;cursor:text;box-sizing:border-box}
+.hit:focus,.hit.selected{outline:1px solid #166ac6;background:#2196f321}
+#status{white-space:pre-wrap;word-break:break-word}
+.error{background:#ffe9e6;color:#9c2926}.success{background:#e8f7ed;color:#206641}
+input[type=range]{flex:1;min-width:120px;accent-color:#174c80}
+</style></head><body>
+<header>PDF 工作台 <small>原始文字編輯技術測試｜僅限本機 127.0.0.1｜不會上傳雲端</small></header>
+<main>
+<section class="card">
+<label for="pdfFile">選擇 PDF（最多 8 MB）</label>
+<input id="pdfFile" type="file" accept=".pdf,application/pdf">
+<p class="note">目前只支援可選取的原始文字、相同字數且原內嵌字型具有新字元的修改。掃描 PDF、缺字與無法證明格式一致的文件不會修改。</p>
+</section>
+<section class="card">
+<div class="row"><button id="previous" class="secondary">上一頁</button><span id="pageNumber">未載入</span><button id="next" class="secondary">下一頁</button></div>
+<div class="row" style="margin:12px 0"><label for="scale">預覽縮放</label><input id="scale" type="range" value="100" min="70" max="230" step="10"><output id="zoomLabel">100%</output></div>
+<div id="viewer"><div id="stage"><canvas id="pageCanvas"></canvas><div id="textOverlay"></div></div></div>
+<p class="note">點選頁面內文字可填入下方原文字段；若點選整行，可自行縮短為要修改的片語。</p>
+</section>
+<section class="card">
+<label for="original">原始文字（只能修改文件裡唯一出現的一段）</label>
+<textarea id="original" placeholder="點選上方文字，或直接輸入 PDF 中的原文"></textarea>
+<label for="replacement" style="margin-top:12px">修改為</label>
+<textarea id="replacement" placeholder="輸入新文字；測試版需與原文字數相同"></textarea>
+<div class="row" style="margin-top:12px"><button id="check">檢查字型與格式</button><button id="apply" disabled>確認修改並另存 PDF</button></div>
+<div id="status" class="info" role="status" aria-live="polite" style="margin-top:12px">請先選擇 PDF 與文字。</div>
+</section>
+<div class="warn">此頁是尚未開放的研究原型，不會改動正式 GitHub Pages 網站。測試結果不等於所有 PDF 均能保持原格式。只在本機電腦執行，不應對外公開網路服務。</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(()=>{"use strict";
+const $=id=>document.getElementById(id);
+let file=null,doc=null,page=1, rendering=0;
+const worker='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc=worker;
+const status=(message,kind)=>{$("status").textContent=message;$("status").className=kind||"info"};
+const invalidate=()=>{$("apply").disabled=true;$("status").className="info"};
+$("original").addEventListener("input",invalidate);
+$("replacement").addEventListener("input",invalidate);
+$("pdfFile").addEventListener("change",async()=>{
+ file=$("pdfFile").files?.[0];doc=null;page=1;invalidate();
+ $("original").value="";$("replacement").value="";
+ if(!file)return;
+ try{
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  doc=await pdfjsLib.getDocument({data:bytes,isEvalSupported:false}).promise;
+  await showPage();status("已載入，可選取要修改的原始文字。");
+ }catch(e){status("無法讀取這份 PDF："+e.message,"info error");}
+});
+const showPage=async()=>{
+ if(!doc)return;const current=++rendering;const p=await doc.getPage(page);
+ const initial=p.getViewport({scale:1});
+ const width=Math.max(220,Math.min(innerWidth-55,700))*Number($("scale").value)/100;
+ const view=p.getViewport({scale:width/initial.width});
+ const canvas=$("pageCanvas"),ctx=canvas.getContext("2d");
+ canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);
+ canvas.style.width=canvas.width+"px";canvas.style.height=canvas.height+"px";
+ const stage=$("stage");stage.style.width=canvas.width+"px";stage.style.height=canvas.height+"px";
+ await p.render({canvasContext:ctx,viewport:view}).promise;
+ if(current!==rendering)return;
+ const overlay=$("textOverlay");overlay.replaceChildren();
+ const tc=await p.getTextContent();
+ for(const item of tc.items){
+  if(!item.str?.trim())continue;
+  const t=pdfjsLib.Util.transform(view.transform,item.transform);
+  const h=Math.max(9,Math.hypot(t[2],t[3]));
+  const b=document.createElement("button");b.className="hit";b.type="button";
+  b.style.left=t[4]+"px";b.style.top=(t[5]-h)+"px";
+  b.style.width=Math.max(9,item.width*view.scale)+"px";b.style.height=h+"px";
+  b.setAttribute("aria-label","選取 PDF 文字："+item.str);
+  b.onclick=()=>{overlay.querySelectorAll(".hit").forEach(n=>n.classList.remove("selected"));b.classList.add("selected");
+   $("original").value=item.str;$("replacement").value=item.str;$("apply").disabled=true;
+   $("replacement").focus();status("已選取原文："+item.str+"。請修改下方內容，然後進行格式檢查。")};
+  overlay.append(b);
+ }
+ $("pageNumber").textContent=page+" / "+doc.numPages;
+ $("previous").disabled=page===1;$("next").disabled=page===doc.numPages;
+};
+$("previous").onclick=()=>{if(page>1){page--;void showPage()}};
+$("next").onclick=()=>{if(doc&&page<doc.numPages){page++;void showPage()}};
+$("scale").addEventListener("input",()=>{$("zoomLabel").textContent=$("scale").value+"%";void showPage()});
+async function submit(route){
+ if(!file){status("請先選擇 PDF","info error");return}
+ const form=new FormData();form.append("file",file);form.append("original",$("original").value);
+ form.append("replacement",$("replacement").value);
+ const response=await fetch(route,{method:"POST",body:form,cache:"no-store"});
+ if(route==="/api/apply"&&response.ok){
+  const blob=await response.blob();const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=file.name.replace(/\.pdf$/i,"")+"_edited.pdf";
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+  status("已另存新 PDF。原文件保持不變；仍請核對修改後的版面。","info success");return;
+ }
+ const result=await response.json();status(result.message+(result.details?"\n"+JSON.stringify(result.details):""),result.allowed?"info success":"info error");
+ $("apply").disabled=!result.allowed||route==="/api/apply";
+}
+$("check").onclick=async()=>{try{await submit("/api/preflight")}catch(e){status("本機服務錯誤："+e.message,"info error")}};
+$("apply").onclick=async()=>{try{await submit("/api/apply")}catch(e){status("修改失敗："+e.message,"info error")}};
+})();
+</script>
+</body></html>
