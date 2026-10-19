@@ -8,6 +8,7 @@
   const mergePage = new WeakMap();
   const imgRotation = new WeakMap();
   let mergeRenderVersion = 0;
+  let imagePrintScale = 75; // Percentage of the A4 printable-area fit.
   let quickEdit = null;
   let zoomFile = null;
   let zoomPage = 1;
@@ -56,7 +57,8 @@
     if (app.tool === 'images') {
       return '<section class="file-preview-card">' + base +
         '<div class="image-preview" data-index="' + i + '">' +
-        '<canvas class="image-preview-canvas"></canvas>' +
+        '<div class="image-paper" aria-label="A4 列印尺寸預覽">' +
+        '<canvas class="image-preview-canvas"></canvas></div>' +
         '<div class="preview-nav"><button class="btn sm" data-imgrotate="' + i + ',-90">↶ 向左旋轉</button>' +
         '<span class="image-angle small">0°</span>' +
         '<button class="btn sm" data-imgrotate="' + i + ',90">向右旋轉 ↷</button></div>' +
@@ -66,11 +68,62 @@
     return base;
   };
 
+  function updateImagePaper(card) {
+    const canvas = card.querySelector('.image-preview-canvas');
+    const sheet = card.querySelector('.image-paper');
+    if (!canvas || !sheet || !canvas.width || !canvas.height) return;
+    const paper = canvas.width > canvas.height ? [841.89, 595.28] : [595.28, 841.89];
+    const margin = 24;
+    const fit = Math.min((paper[0] - 2 * margin) / canvas.width,
+                         (paper[1] - 2 * margin) / canvas.height);
+    sheet.style.aspectRatio = paper[0] + ' / ' + paper[1];
+    canvas.style.width = (canvas.width * fit * imagePrintScale / paper[0]) + '%';
+    canvas.style.height = 'auto';
+  }
+
+  function setImagePrintScale(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return;
+    imagePrintScale = Math.min(100, Math.max(25, Math.round(number / 5) * 5));
+    const slider = document.querySelector('#imagePrintScale');
+    const output = document.querySelector('#imagePrintScaleLabel');
+    if (slider) slider.value = String(imagePrintScale);
+    if (output) output.textContent = imagePrintScale + '%';
+    document.querySelectorAll('[data-image-scale]').forEach(button => {
+      button.classList.toggle('image-scale-active', Number(button.dataset.imageScale) === imagePrintScale);
+    });
+    document.querySelectorAll('.image-preview').forEach(updateImagePaper);
+  }
+
+  function setupImagePrintControls() {
+    const root = document.querySelector('#workBody');
+    root.insertAdjacentHTML('afterbegin',
+      '<section class="card image-print-settings"><div class="row image-print-heading">' +
+      '<strong>照片列印比例</strong><output id="imagePrintScaleLabel" for="imagePrintScale">' +
+      imagePrintScale + '%</output></div>' +
+      '<input id="imagePrintScale" class="image-scale-slider" type="range" min="25" max="100" step="5" ' +
+      'value="' + imagePrintScale + '" aria-label="照片列印比例">' +
+      '<div class="row wrap image-scale-presets">' +
+      '<button class="btn sm" type="button" data-image-scale="50">50% 小圖</button>' +
+      '<button class="btn sm" type="button" data-image-scale="75">75% 適中</button>' +
+      '<button class="btn sm" type="button" data-image-scale="100">100% 大圖</button></div>' +
+      '<p class="small">以 A4 頁面可用範圍為 100%，每張照片都依相同比例縮放、置中且不裁切。' +
+      '例如 50% 表示寬與高各為原本的一半，實際列印大小請依紙張預覽確認。</p></section>');
+    root.querySelector('#imagePrintScale').addEventListener('input', e => setImagePrintScale(e.target.value));
+    root.querySelectorAll('[data-image-scale]').forEach(button => {
+      button.addEventListener('click', () => setImagePrintScale(button.dataset.imageScale));
+    });
+    setImagePrintScale(imagePrintScale);
+  }
+
   renderWork = function enhancedRenderWork() {
     baseRenderWork();
     if (!app.files.length) return;
     if (app.tool === 'merge') void setupMergePreviews();
-    if (app.tool === 'images') void setupImagePreviews();
+    if (app.tool === 'images') {
+      setupImagePrintControls();
+      void setupImagePreviews();
+    }
     if (app.tool === 'edit') addInspectorButton();
   };
 
@@ -212,6 +265,7 @@
       const side = Math.max(bitmap.width, bitmap.height);
       const canvas = card.querySelector('canvas');
       paintImageRotated(canvas, bitmap, angle, Math.min(1, 250 / side));
+      updateImagePaper(card);
       bitmap.close?.();
     } catch (e) {
       card.querySelector('.image-angle').textContent = '無法預覽圖片';
@@ -262,9 +316,10 @@
       const landscape = image.width > image.height;
       const paper = landscape ? [841.89, 595.28] : [595.28, 841.89];
       const margin = 24;
-      const scale = Math.min((paper[0] - 2 * margin) / image.width,
-                             (paper[1] - 2 * margin) / image.height);
-      const drawW = image.width * scale, drawH = image.height * scale;
+      const fitScale = Math.min((paper[0] - 2 * margin) / image.width,
+                                (paper[1] - 2 * margin) / image.height);
+      const printScale = fitScale * imagePrintScale / 100;
+      const drawW = image.width * printScale, drawH = image.height * printScale;
       doc.addPage(paper).drawImage(image, {
         x: (paper[0] - drawW) / 2, y: (paper[1] - drawH) / 2,
         width: drawW, height: drawH
