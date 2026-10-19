@@ -90,6 +90,10 @@ try{
   await page.locator('#toolInput').setInputFiles([{name:'wide.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')}]);
   await page.locator('[data-imgrotate="0,90"]').click();
   assert.equal(await page.locator('.image-angle').innerText(),'90°');
+  await page.waitForFunction(() => {
+    const c=document.querySelector('.image-preview-canvas');
+    return c && c.height>c.width && parseFloat(c.style.width)>0;
+  });
   const d=await downloadResult(1);
   assert.ok(d.getPage(0).getSize().height>d.getPage(0).getSize().width,'旋轉 90 度後應為直式頁面');
   note('圖片旋轉 90 度且輸出 PDF 確實變成直向');
