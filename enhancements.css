@@ -16,3 +16,15 @@
 .zoom-scroll{display:flex;align-items:flex-start;justify-content:center;overflow:auto;background:#e4ebf4;padding:10px;margin:12px 0;border-radius:12px;max-height:calc(95vh - 155px)}
 .zoom-scroll canvas{background:white;max-width:none;flex-shrink:0}
 @media(max-width:440px){.file-preview-card>.file-row{flex-wrap:wrap}.file-preview-card>.file-row .grow{flex-basis:calc(100% - 74px)}.file-preview-card .file-row .btn{flex:1}.file-preview-card .file-row .btn.sm{min-width:44px}}
+
+/* v0.6.4: A4 print-size preview for photos; mirrors the PDF placement ratio. */
+.image-print-settings{display:grid;gap:11px}
+.image-print-heading{justify-content:space-between}
+#imagePrintScaleLabel{color:var(--navy);font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.image-scale-slider{width:100%;accent-color:var(--navy);min-height:36px;touch-action:pan-y}
+.image-scale-presets{gap:8px}
+.image-scale-presets .btn{flex:1;min-width:95px}
+.image-scale-presets .image-scale-active{background:var(--blue);border-color:var(--navy)}
+.image-print-settings .small{margin:0;line-height:1.65}
+.image-paper{display:flex;align-items:center;justify-content:center;width:min(240px,100%);background:#fff;box-shadow:0 2px 11px #173b6333;border:1px solid #dde4eb;aspect-ratio:210 / 297;overflow:hidden}
+.image-paper .image-preview-canvas{display:block;max-width:none;max-height:none;height:auto;object-fit:contain;box-shadow:none;flex-shrink:0}

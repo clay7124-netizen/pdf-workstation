@@ -93,6 +93,40 @@ try{
   const d=await downloadResult(1);
   assert.ok(d.getPage(0).getSize().height>d.getPage(0).getSize().width,'旋轉 90 度後應為直式頁面');
   note('圖片旋轉 90 度且輸出 PDF 確實變成直向');
+  assert.equal(await page.locator('#imagePrintScale').inputValue(), '75');
+  await page.locator('[data-image-scale="50"]').click();
+  assert.equal(await page.locator('#imagePrintScaleLabel').innerText(), '50%');
+  const previewWidth50 = await page.locator('.image-preview-canvas').evaluate(c=>parseFloat(c.style.width));
+  // Intercept real image placement in pdf-lib, not just the visual slider label.
+  await page.evaluate(() => {
+    window.__imageDrawSizes = [];
+    const proto = window.PDFLib.PDFPage.prototype;
+    const original = proto.drawImage;
+    proto.drawImage = function(img, options) {
+      window.__imageDrawSizes.push({width:options.width,height:options.height,
+        x:options.x,y:options.y,paperWidth:this.getWidth(),paperHeight:this.getHeight()});
+      return original.call(this,img,options);
+    };
+  });
+  await downloadResult(1);
+  const halfSize = await page.evaluate(() => window.__imageDrawSizes.at(-1));
+  await page.locator('[data-image-scale="100"]').click();
+  assert.equal(await page.locator('#imagePrintScaleLabel').innerText(), '100%');
+  const previewWidth100 = await page.locator('.image-preview-canvas').evaluate(c=>parseFloat(c.style.width));
+  await downloadResult(1);
+  const fullSize = await page.evaluate(() => window.__imageDrawSizes.at(-1));
+  assert.ok(Math.abs(previewWidth100 - previewWidth50*2) < 0.01,
+    'A4 畫面預覽必須跟隨縮放比例');
+  assert.ok(Math.abs(fullSize.width - halfSize.width*2) < 0.01 &&
+            Math.abs(fullSize.height - halfSize.height*2) < 0.01,
+    '匯出 PDF 實際影像長寬必須與比例一致');
+  assert.ok(Math.abs(halfSize.x*2 + halfSize.width - halfSize.paperWidth) < 0.01 &&
+            Math.abs(halfSize.y*2 + halfSize.height - halfSize.paperHeight) < 0.01,
+    '列印照片必須置中');
+  assert.ok(fullSize.width <= fullSize.paperWidth - 48 + 0.01 &&
+            fullSize.height <= fullSize.paperHeight - 48 + 0.01,
+    '100% 不得超出 A4 可用區域');
+  note('照片列印比例 50% / 100%：A4 預覽及真正 PDF 影像尺寸皆正確、置中不裁切');
   await page.locator('#backBtn').click();
 
   // A landscape JPEG where the orientation metadata tells iOS to display it portrait.
